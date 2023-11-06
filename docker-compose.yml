@@ -3,11 +3,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.api
-    image: react-flask-app-api
+    image: react-flask-sd-app-api
+    volumes:
+      - ./config.json:/app/api/config.json
+      - ./captures/:/app/captures/
   client:
     build:
       context: .
       dockerfile: Dockerfile.client
-    image: react-flask-app-client
+    image: react-flask-sd-app-client
     ports:
       - "3000:80"

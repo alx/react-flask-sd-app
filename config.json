@@ -1,0 +1,16 @@
+{
+	"log_filename": "log.txt",
+	"capture_folder": "/app/captures",
+	"processor": {
+		"type": "cpu",
+		"gpu_id": 0,
+		"output_prefix": "",
+		"output_suffix": "_response",
+        "prompt": "",
+        "negative_prompt": "",
+		"extras": [
+			"face_to_prompt",
+			"swap_faces"
+		]
+	}
+}
