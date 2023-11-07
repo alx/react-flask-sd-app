@@ -11,7 +11,3 @@ COPY api/requirements.txt ./
 RUN pip install -r ./requirements.txt
 
 COPY api/api.py api/image_processor.py api/.flaskenv api/swapper.py ./
-
-ENV FLASK_ENV production
-EXPOSE 5000
-CMD ["gunicorn", "-b", ":5000", "api:app"]
