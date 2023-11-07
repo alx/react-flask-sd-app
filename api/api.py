@@ -12,17 +12,15 @@ from image_processor import ImageProcessor
 CURRENT_PATH = os.path.dirname(os.path.abspath(__file__))
 
 parser = argparse.ArgumentParser(description="Read config file path")
-parser.add_argument("--config", type=str, help="Path to the configuration file")
+parser.add_argument(
+    "--config",
+    type=str,
+    default="/app/config.json",
+    help="Path to the configuration file"
+)
 args = parser.parse_args()
 
-if args.config:
-    config_path = os.path.abspath(args.config)
-    print(f"Config file path: {config_path}")
-else:
-    config_path = Path(CURRENT_PATH, "config.json")
-    print("No configuration file provided. Use --config [path_to_config_file] to specify one.")
-
-with open(config_path, "r") as f:
+with open(args.config, "r") as f:
     config = json.load(f)
 
 if not os.path.exists(config["capture_folder"]):
@@ -90,3 +88,7 @@ def process_image():
     byte_io.seek(0)
 
     return send_file(byte_io, mimetype='image/jpeg')
+
+if __name__ == "__main__":
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=True, host='0.0.0.0', port=port)

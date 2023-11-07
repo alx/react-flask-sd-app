@@ -4,11 +4,12 @@ services:
       context: .
       dockerfile: Dockerfile.api
     image: react-flask-sd-app-api
+    command: python3 /app/api.py --config /app/config.json
     runtime: nvidia
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
     volumes:
-      - ./config.json:/app/api/config.json
+      - ./config.json:/app/config.json
       - ./captures/:/app/captures/
       - /home/user/checkpoints/:/app/checkpoints/
       - /home/user/.cache/:/root/.cache/
