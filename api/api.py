@@ -1,5 +1,5 @@
 import time
-from flask import Flask
+from flask import Flask, request
 from pprint import pprint
 import os
 import json
@@ -54,8 +54,8 @@ def get_current_time():
 
 @app.route('/api/processing', methods=['POST'])
 def process_image():
-    prompt = app.request.form.get('prompt')
-    file = app.request.files.get('imagefile', '')
+    prompt = request.form.get('prompt')
+    file = request.files.get('imagefile', '')
 
     img = Image.open(file.stream)
 
