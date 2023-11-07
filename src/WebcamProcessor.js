@@ -21,7 +21,7 @@ export default function WebcamProcessor() {
 
   function handleProcessClick() {
     let formData = new FormData();
-    formData.append('screenshot', webcamRef.current.getScreenshot());
+    formData.append('imagefile', webcamRef.current.getScreenshot());
     formData.append('prompt', prompt);
 
     const postProcessRequestOptions = {

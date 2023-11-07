@@ -54,8 +54,8 @@ def get_current_time():
 
 @app.route('/api/processing', methods=['POST'])
 def process_image():
-    prompt = request.form.get('prompt')
-    file = request.files['image']
+    prompt = flask.request.form.get('prompt')
+    file = flask.request.files.get('imagefile', '')
 
     img = Image.open(file.stream)
 
