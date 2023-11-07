@@ -8,7 +8,6 @@ import logging
 import cv2
 import re
 import swapper
-from bs4 import BeautifulSoup
 import insightface
 from insightface.app import FaceAnalysis
 from collections import Counter
@@ -42,7 +41,7 @@ class ImageProcessor:
     def __init__(self,
                  config=None,
                  logging=None,
-                 swapper_model = "/home/user/photomaiton/remote/checkpoints/inswapper_128.onnx"
+                 swapper_model = "/app/checkpoints/inswapper_128.onnx"
                  ):
         self.config = config
 
@@ -168,14 +167,10 @@ class ImageProcessor:
         inverted_image = PIL.ImageOps.invert(image)
         inverted_image.save(dst_path)
 
-        return [{
-            "filepath": str(dst_path),
-            "description": "process_cpu invert_color"
-        }]
+        return image
 
     def process_gpu(self, status, capture):
 
-        processed_medias = []
         src_path = self.src_path(capture)
 
         src_img = load_image(str(src_path))
@@ -237,25 +232,16 @@ class ImageProcessor:
 
         dst_path = self.dst_path(capture)
         dst_img.save(str(dst_path))
-        processed_medias.append({
-            "filepath": dst_path,
-            "description": f"%s | (--) %s" % (prompt, negative_prompt)
-        })
 
         if "swap_faces" in self.process_config["extras"]:
 
-            frame = self.face_swap(
+            dst_img = self.face_swap(
                 source=src_path,
                 target=dst_path
             )
 
             dst_path = self.dst_path(capture, "", "_inswapper")
-            cv2.imwrite(str(dst_path), frame)
-
-            processed_medias.append({
-                "filepath": dst_path,
-                "description": ""
-            })
+            dst_img.save(str(dst_path))
 
         if "controlnet" in self.process_config:
 
@@ -284,19 +270,8 @@ class ImageProcessor:
 
             dst_path = self.dst_path(capture, "", "_controlnet")
             dst_img.save(str(dst_path))
-            processed_medias.append({
-                "filepath": dst_path,
-                "description": "controlnet"
-            })
 
-        if "keep_original" in self.process_config["extras"]:
-
-            processed_medias.append({
-                "filepath": src_path,
-                "description": str(status_hash)
-            })
-
-        return processed_medias
+        return dst_img
 
     def create_hash_from_status(self, status):
 
