@@ -13,8 +13,6 @@ services:
       - ./captures/:/app/captures/
       - /home/user/checkpoints/:/app/checkpoints/
       - /home/user/.cache/:/root/.cache/
-    ports:
-      - "5000:5000"
   client:
     build:
       context: .
