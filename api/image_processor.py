@@ -50,62 +50,69 @@ class ImageProcessor:
 
         self.logging = logging
 
-        device = torch.device("cuda:%i" % self.config["processor"]["gpu_id"])
+        try:
+            device = torch.device("cuda:%i" % self.config["processor"]["gpu_id"])
 
-        adapter = T2IAdapter.from_pretrained(
-            "TencentARC/t2i-adapter-depth-zoe-sdxl-1.0",
-            torch_dtype=torch.float16,
-            varient="fp16",
-        ).to(device)
+            adapter = T2IAdapter.from_pretrained(
+                "TencentARC/t2i-adapter-depth-zoe-sdxl-1.0",
+                torch_dtype=torch.float16,
+                varient="fp16",
+            ).to(device)
 
-        # load euler_a scheduler
-        model_id = "stabilityai/stable-diffusion-xl-base-1.0"
-        euler_a = EulerAncestralDiscreteScheduler.from_pretrained(
-            model_id,
-            subfolder="scheduler"
-        )
-        vae = AutoencoderKL.from_pretrained(
-            "madebyollin/sdxl-vae-fp16-fix",
-            torch_dtype=torch.float16
-        )
-        self.pipe = StableDiffusionXLAdapterPipeline.from_pretrained(
-            model_id,
-            vae=vae,
-            adapter=adapter,
-            scheduler=euler_a,
-            torch_dtype=torch.float16,
-            variant="fp16",
-        ).to(device)
-        self.pipe.enable_xformers_memory_efficient_attention()
+            # load euler_a scheduler
+            model_id = "stabilityai/stable-diffusion-xl-base-1.0"
+            euler_a = EulerAncestralDiscreteScheduler.from_pretrained(
+                model_id,
+                subfolder="scheduler"
+            )
+            vae = AutoencoderKL.from_pretrained(
+                "madebyollin/sdxl-vae-fp16-fix",
+                torch_dtype=torch.float16
+            )
+            self.pipe = StableDiffusionXLAdapterPipeline.from_pretrained(
+                model_id,
+                vae=vae,
+                adapter=adapter,
+                scheduler=euler_a,
+                torch_dtype=torch.float16,
+                variant="fp16",
+            ).to(device)
+            self.pipe.enable_xformers_memory_efficient_attention()
 
-        self.zoe_depth = ZoeDetector.from_pretrained(
-            "valhalla/t2iadapter-aux-models",
-            filename="zoed_nk.pth",
-            model_type="zoedepth_nk",
-        ).to(device)
+            self.zoe_depth = ZoeDetector.from_pretrained(
+                "valhalla/t2iadapter-aux-models",
+                filename="zoed_nk.pth",
+                model_type="zoedepth_nk",
+            ).to(device)
 
-        # # load control net and stable diffusion v1-5
-        # controlnet = ControlNetModel.from_pretrained(
-        #     "monster-labs/control_v1p_sd15_qrcode_monster",
-        #     torch_dtype=torch.float16
-        # )
+            # # load control net and stable diffusion v1-5
+            # controlnet = ControlNetModel.from_pretrained(
+            #     "monster-labs/control_v1p_sd15_qrcode_monster",
+            #     torch_dtype=torch.float16
+            # )
 
-        # self.controlnet_pipe = StableDiffusionControlNetImg2ImgPipeline.from_pretrained(
-        #     "runwayml/stable-diffusion-v1-5",
-        #     controlnet=controlnet,
-        #     torch_dtype=torch.float16
-        # )
+            # self.controlnet_pipe = StableDiffusionControlNetImg2ImgPipeline.from_pretrained(
+            #     "runwayml/stable-diffusion-v1-5",
+            #     controlnet=controlnet,
+            #     torch_dtype=torch.float16
+            # )
 
-        # # speed up diffusion process with faster scheduler and memory optimization
-        # self.controlnet_pipe.scheduler = UniPCMultistepScheduler.from_config(
-        #     self.controlnet_pipe.scheduler.config
-        # )
-        # self.controlnet_pipe.enable_model_cpu_offload()
+            # # speed up diffusion process with faster scheduler and memory optimization
+            # self.controlnet_pipe.scheduler = UniPCMultistepScheduler.from_config(
+            #     self.controlnet_pipe.scheduler.config
+            # )
+            # self.controlnet_pipe.enable_model_cpu_offload()
 
-        self.face_analyser = FaceAnalysis(name='buffalo_l')
-        self.face_analyser.prepare(ctx_id=0)
+            self.face_analyser = FaceAnalysis(name='buffalo_l')
+            self.face_analyser.prepare(ctx_id=0)
 
-        self.swapper = insightface.model_zoo.get_model(swapper_model)
+            self.swapper = insightface.model_zoo.get_model(swapper_model)
+        # catch error on torch device full memory
+        except torch.cuda.OutOfMemoryError:
+            self.logging.error("Error on torch device memory, exiting")
+            self.logging.error(torch.cuda.memory_summary(device=None, abbreviated=False))
+            exit()
+
 
     def run(self, status, capture):
         if self.config["processor"]["type"] == "cpu":
