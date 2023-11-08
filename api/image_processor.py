@@ -34,43 +34,49 @@ try:
     import skimage.io
     import skimage.util
 except ImportError:
-    print("Error importing diffusers, it will run fine on CPU")
+    print("Error importing diffusers, it will not run on CPU")
+    exit
 
 
 class ImageProcessor:
-    def __init__(self,
-                 config=None,
-                 logging=None,
-                 swapper_model = "/app/checkpoints/inswapper_128.onnx"
-                 ):
-        self.config = config
+    def __init__(self, config=None, logging=None):
+        if config is None:
+            self.logging.error("No config provided, exiting")
+            exit
+        if config["processor"] is None:
+            self.logging.error("No processor config provided, exiting")
+            exit
+        if config["processor"]["models"] is None:
+            self.logging.error("No processor config provided, exiting")
+            exit
 
-        if config is not None:
-            self.process_config = config["processor"]
+        self.config = config
+        self.process_config = self.config["processor"]
+        self.models_config = self.process_config["models"]
 
         self.logging = logging
 
         try:
             device = torch.device("cuda:%i" % self.config["processor"]["gpu_id"])
 
-            adapter = T2IAdapter.from_pretrained(
-                "TencentARC/t2i-adapter-depth-zoe-sdxl-1.0",
-                torch_dtype=torch.float16,
-                varient="fp16",
-            ).to(device)
-
-            # load euler_a scheduler
-            model_id = "stabilityai/stable-diffusion-xl-base-1.0"
             euler_a = EulerAncestralDiscreteScheduler.from_pretrained(
                 model_id,
                 subfolder="scheduler"
             )
+
             vae = AutoencoderKL.from_pretrained(
-                "madebyollin/sdxl-vae-fp16-fix",
+                self.models_config["vae"],
                 torch_dtype=torch.float16
             )
+
+            adapter = T2IAdapter.from_pretrained(
+                self.models_config["t2iAdapter"],
+                torch_dtype=torch.float16,
+                varient="fp16",
+            ).to(device)
+
             self.pipe = StableDiffusionXLAdapterPipeline.from_pretrained(
-                model_id,
+                self.models_config["sdxl"],
                 vae=vae,
                 adapter=adapter,
                 scheduler=euler_a,
@@ -80,9 +86,9 @@ class ImageProcessor:
             self.pipe.enable_xformers_memory_efficient_attention()
 
             self.zoe_depth = ZoeDetector.from_pretrained(
-                "valhalla/t2iadapter-aux-models",
-                filename="zoed_nk.pth",
-                model_type="zoedepth_nk",
+                self.models_config["zoe_depth"]["model_id"],
+                filename=self.models_config["zoe_depth"]["filename"],
+                model_type=self.models_config["zoe_depth"]["model_type"],
             ).to(device)
 
             # # load control net and stable diffusion v1-5
@@ -103,22 +109,19 @@ class ImageProcessor:
             # )
             # self.controlnet_pipe.enable_model_cpu_offload()
 
-            self.face_analyser = FaceAnalysis(name='buffalo_l')
+            self.face_analyser = FaceAnalysis(
+                name=self.models_config["face_analysis"]
+            )
             self.face_analyser.prepare(ctx_id=0)
 
-            self.swapper = insightface.model_zoo.get_model(swapper_model)
+            self.swapper = insightface.model_zoo.get_model(
+                self.models_config["swapper"]
+            )
         # catch error on torch device full memory
         except torch.cuda.OutOfMemoryError:
             self.logging.error("Error on torch device memory, exiting")
             self.logging.error(torch.cuda.memory_summary(device=None, abbreviated=False))
             exit()
-
-
-    def run(self, status, capture):
-        if self.config["processor"]["type"] == "cpu":
-            return self.process_cpu(status, capture)
-        else:
-            return self.process_gpu(status, capture)
 
     def src_path(self, capture):
         src_filename = f"%s.%s" % (capture["capture_id"], capture["extension"])
@@ -164,17 +167,7 @@ class ImageProcessor:
 
         return frame
 
-    def process_cpu(self, status, capture):
-        src_path = self.src_path(capture)
-        dst_path = self.dst_path(capture)
-
-        image = Image.open(src_path)
-        inverted_image = PIL.ImageOps.invert(image)
-        inverted_image.save(dst_path)
-
-        return image
-
-    def process_gpu(self, status, capture):
+    def run(self, status, capture):
 
         src_path = self.src_path(capture)
 
