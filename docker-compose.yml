@@ -13,12 +13,13 @@ services:
       - ./captures/:/app/captures/
       - /home/user/checkpoints/:/app/checkpoints/
       - /home/user/.cache/:/root/.cache/
-      - /home/user/ssl.crt:/app/certs/ssl.crt
-      - /home/user/ssl.key:/app/certs/ssl.key
   client:
     build:
       context: .
       dockerfile: Dockerfile.client
     image: react-flask-sd-app-client
+    volumes:
+      - /home/user/ssl.crt:/app/certs/ssl.crt
+      - /home/user/ssl.key:/app/certs/ssl.key
     ports:
-      - "3000:80"
+      - "3000:443"
