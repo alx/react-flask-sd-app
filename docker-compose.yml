@@ -13,6 +13,8 @@ services:
       - ./captures/:/app/captures/
       - /home/user/checkpoints/:/app/checkpoints/
       - /home/user/.cache/:/root/.cache/
+      - /home/user/ssl.crt:/app/certs/ssl.crt
+      - /home/user/ssl.key:/app/certs/ssl.key
   client:
     build:
       context: .
