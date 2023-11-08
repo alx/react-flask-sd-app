@@ -123,22 +123,21 @@ class ImageProcessor:
             self.logging.error(torch.cuda.memory_summary(device=None, abbreviated=False))
             exit()
 
-    def src_path(self, capture):
-        src_filename = f"%s.%s" % (capture["capture_id"], capture["extension"])
+    def src_path(self, filename):
+        return Path(self.config["capture_folder"], filename)
 
-        return Path(CURRENT_PATH, self.config["capture_folder"], src_filename)
-
-    def dst_path(self, capture, prefix = "", suffix = ""):
+    def dst_path(self, filename, prefix = "", suffix = ""):
+        filename_no_extension = filename.split(".")[0]
         dst_filename = f"%s%s%s%s%s.%s" % (
             self.process_config["output_prefix"],
             prefix,
-            capture["capture_id"],
+            filename_no_extension,
             self.process_config["output_suffix"],
             suffix,
-            capture["extension"],
+            "jpg"
         )
 
-        return Path(CURRENT_PATH, self.config["capture_folder"], dst_filename)
+        return Path(self.config["capture_folder"], dst_filename)
 
     def face_to_prompt(self, faces):
 
@@ -167,9 +166,9 @@ class ImageProcessor:
 
         return frame
 
-    def run(self, status, capture):
+    def run(self, status, filename):
 
-        src_path = self.src_path(capture)
+        src_path = self.src_path(filename)
 
         src_img = load_image(str(src_path))
         src_img = self.zoe_depth(
@@ -228,7 +227,7 @@ class ImageProcessor:
             cross_attention_kwargs={"scale": config_lora_scale},
         ).images[0]
 
-        dst_path = self.dst_path(capture)
+        dst_path = self.dst_path(filename)
         dst_img.save(str(dst_path))
 
         if "swap_faces" in self.process_config["extras"]:
@@ -238,7 +237,7 @@ class ImageProcessor:
                 target=dst_path
             )
 
-            dst_path = self.dst_path(capture, "", "_inswapper")
+            dst_path = self.dst_path(filename, "", "_inswapper")
             dst_img.save(str(dst_path))
 
         # if "controlnet" in self.process_config:
@@ -266,7 +265,7 @@ class ImageProcessor:
         #         control_image=control_img,
         #     ).images[0]
 
-        #     dst_path = self.dst_path(capture, "", "_controlnet")
+        #     dst_path = self.dst_path(filename, "", "_controlnet")
         #     dst_img.save(str(dst_path))
 
         return dst_img

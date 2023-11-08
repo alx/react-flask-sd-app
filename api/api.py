@@ -1,5 +1,6 @@
 import time
-from flask import Flask, request
+from flask import Flask, request, flash, redirect, url_for
+from werkzeug.utils import secure_filename
 from pprint import pprint
 import os
 import json
@@ -36,7 +37,11 @@ logging.basicConfig(
 logging.getLogger().addHandler(logging.StreamHandler())
 
 processor = ImageProcessor(config, logging)
+
 app = Flask(__name__, static_folder='../build', static_url_path='/')
+
+# Limit upload size to 16MB
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1000 * 1000
 
 @app.errorhandler(404)
 def not_found(e):
@@ -54,33 +59,18 @@ def get_current_time():
 
 @app.route('/api/processing', methods=['POST'])
 def process_image():
+
+    if 'file' not in request.files:
+        flash('No file part')
+        return redirect(request.url)
+
+    filename = f"%s.jpg" % (uuid.uuid4())
+    file = request.files['file']
+    file.save(Path(config['capture_folder'], filename))
+
     prompt = request.form.get('prompt')
-    file = request.files.get('imagefile', '')
 
-    img = Image.open(file.stream)
-
-    # save image in capture folder
-    capture_id = uuid.uuid4()
-    capture_extension = ".jpg"
-    capture_filename = f"%s.%s" % (capture_id, capture_extension)
-    img.save(config["capture_folder"] + capture_filename)
-    logging.debug(f"Destination %s" % (capture_filename))
-    capture_file = Path(
-        CURRENT_PATH,
-        config["capture_folder"],
-        capture_filename,
-    )
-
-    img = (
-        Image.open(BytesIO(response.content))
-        .convert("RGB")
-        .resize((512, 512))
-    )
-    img.save(capture_file)
-
-    # Process the image
-    capture = {"capture_id": capture_id, "extension": capture_extension}
-    processed_img = processor.run(prompt, capture)
+    processed_img = processor.run(prompt, filename)
 
     # Convert the processed image into byte stream
     byte_io = io.BytesIO()

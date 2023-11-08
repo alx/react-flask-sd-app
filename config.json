@@ -9,7 +9,7 @@
 			"zoe_depth": {
 				"model_id": "valhalla/t2iadapter-aux-models",
 				"filename": "zoed_nk.pth",
-				"model_type": "zoe_depth_nk"
+				"model_type": "zoedepth_nk"
 			},
 			"face_analysis": "buffalo_l",
 			"swapper": "/app/checkpoints/inswapper_128.onnx"

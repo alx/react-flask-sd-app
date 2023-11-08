@@ -21,7 +21,7 @@ export default function WebcamProcessor() {
 
   function handleProcessClick() {
     let formData = new FormData();
-    formData.append('imagefile', webcamRef.current.getScreenshot());
+    formData.append('file', webcamRef.current.getScreenshot());
     formData.append('prompt', prompt);
 
     const postProcessRequestOptions = {
@@ -37,17 +37,17 @@ export default function WebcamProcessor() {
 
   return (
     <Container>
-      <Col>
-        <Row>
-          <input
-            type='text'
-            value={prompt}
-            onChange={updatePrompt}
-            placeholder='Please enter your prompt'
-            style={{ margin: '5px', padding: '5px', width: '100%', fontSize: 17 }}
-          />
-        </Row>
-        <Row>
+      <Row>
+        <input
+          type='text'
+          value={prompt}
+          onChange={updatePrompt}
+          placeholder='Please enter your prompt'
+          style={{ margin: '5px', padding: '5px', width: '100%', fontSize: 17 }}
+        />
+      </Row>
+      <Row>
+        <Col>
           <Webcam
             audio={false}
             ref={webcamRef}
@@ -55,14 +55,14 @@ export default function WebcamProcessor() {
             width={512}
             height={512}
           />
-        </Row>
-        <Row>
+        </Col>
+        <Col>
           <button onClick={handleProcessClick}>Process</button>
-        </Row>
-        <Row>
+        </Col>
+        <Col>
           <Image alt='process' src={processImg} fluid />
-        </Row>
-      </Col>
+        </Col>
+      </Row>
     </Container>
   );
 }
