@@ -60,7 +60,7 @@ class ImageProcessor:
             device = torch.device("cuda:%i" % self.config["processor"]["gpu_id"])
 
             euler_a = EulerAncestralDiscreteScheduler.from_pretrained(
-                model_id,
+                self.models_config["sdxl"],
                 subfolder="scheduler"
             )
 
