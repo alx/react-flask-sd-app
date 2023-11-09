@@ -8,6 +8,7 @@ import logging
 import argparse
 from pathlib import Path
 import secrets
+import uuid
 
 from image_processor import ImageProcessor
 
