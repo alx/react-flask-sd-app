@@ -1,5 +1,5 @@
 import time
-from flask import Flask, request, flash, redirect, url_for, session
+from flask import Flask, request, flash, redirect, url_for, session, send_from_directory
 from werkzeug.utils import secure_filename
 from pprint import pprint
 import os
@@ -76,12 +76,9 @@ def process_image():
 
     processed_img = processor.run(prompt, filename)
 
-    # Convert the processed image into byte stream
-    byte_io = io.BytesIO()
-    processed_img.save(byte_io, 'JPEG')
-    byte_io.seek(0)
+    return send_from_directory(config['capture_folder'],
+                               processed_img.name, as_attachment=True)
 
-    return send_file(byte_io, mimetype='image/jpeg')
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))

@@ -178,25 +178,15 @@ class ImageProcessor:
             image_resolution=1024
         )
 
-        prompt = ""
         negative_prompt = ""
-
-        if "prompt" in self.config["processor"]:
-            prompt=self.config["processor"]["prompt"]
 
         if "negative_prompt" in self.config["processor"]:
             negative_prompt=self.config["processor"]["negative_prompt"]
 
-        prompt_hash = self.create_hash_from_prompt(prompt)
-        if "prompt" in prompt_hash:
-            prompt = ", ".join([prompt, prompt_hash["prompt"]])
-        if "negative_prompt" in prompt_hash:
-            negative_prompt = ", ".join([negative_prompt, prompt_hash["negative_prompt"]])
-
-        if "face_to_prompt" in self.process_config["extras"]:
-            source_faces = self.face_analyser.get(cv2.imread(str(src_path)))
-            face_prompt = self.face_to_prompt(source_faces)
-            prompt = ", ".join([prompt, face_prompt])
+        # if "face_to_prompt" in self.process_config["extras"]:
+        #     source_faces = self.face_analyser.get(cv2.imread(str(src_path)))
+        #     face_prompt = self.face_to_prompt(source_faces)
+        #     prompt = ", ".join([prompt, face_prompt])
 
         config_num_inference_steps = 30
         config_adapter_conditioning_scale = 1
@@ -230,15 +220,15 @@ class ImageProcessor:
         dst_path = self.dst_path(filename)
         dst_img.save(str(dst_path))
 
-        if "swap_faces" in self.process_config["extras"]:
+        # if "swap_faces" in self.process_config["extras"]:
 
-            dst_img = self.face_swap(
-                source=src_path,
-                target=dst_path
-            )
+        #     dst_img = self.face_swap(
+        #         source=src_path,
+        #         target=dst_path
+        #     )
 
-            dst_path = self.dst_path(filename, "", "_inswapper")
-            dst_img.save(str(dst_path))
+        #     dst_path = self.dst_path(filename, "", "_inswapper")
+        #     dst_img.save(str(dst_path))
 
         # if "controlnet" in self.process_config:
 
@@ -268,11 +258,11 @@ class ImageProcessor:
         #     dst_path = self.dst_path(filename, "", "_controlnet")
         #     dst_img.save(str(dst_path))
 
-        return dst_img
+        return dst_path
 
     def create_hash_from_prompt(self, prompt):
 
-        pairs = promt().split("|")
+        pairs = prompt.split("|")
 
         hash_dict = {}
 
