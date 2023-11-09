@@ -166,7 +166,7 @@ class ImageProcessor:
 
         return frame
 
-    def run(self, status, filename):
+    def run(self, prompt, filename):
 
         src_path = self.src_path(filename)
 
@@ -187,11 +187,11 @@ class ImageProcessor:
         if "negative_prompt" in self.config["processor"]:
             negative_prompt=self.config["processor"]["negative_prompt"]
 
-        status_hash = self.create_hash_from_status(status)
-        if "prompt" in status_hash:
-            prompt = ", ".join([prompt, status_hash["prompt"]])
-        if "negative_prompt" in status_hash:
-            negative_prompt = ", ".join([negative_prompt, status_hash["negative_prompt"]])
+        prompt_hash = self.create_hash_from_prompt(prompt)
+        if "prompt" in prompt_hash:
+            prompt = ", ".join([prompt, prompt_hash["prompt"]])
+        if "negative_prompt" in prompt_hash:
+            negative_prompt = ", ".join([negative_prompt, prompt_hash["negative_prompt"]])
 
         if "face_to_prompt" in self.process_config["extras"]:
             source_faces = self.face_analyser.get(cv2.imread(str(src_path)))
@@ -270,10 +270,9 @@ class ImageProcessor:
 
         return dst_img
 
-    def create_hash_from_status(self, status):
+    def create_hash_from_prompt(self, prompt):
 
-        soup = BeautifulSoup(status["content"], "html.parser")
-        pairs = soup.get_text().split("|")
+        pairs = promt().split("|")
 
         hash_dict = {}
 
@@ -281,18 +280,14 @@ class ImageProcessor:
 
             key_value = pair.strip().split(":")
 
+            # no hash key specified, prompt by default
             if len(key_value) == 1:
 
-                if key_value[0].startswith("@"):
-                    key = "user"
+                key = "prompt"
+                try:
+                    value = float(key_value[0].strip())
+                except ValueError:
                     value = key_value[0].strip()
-
-                else:
-                    key = "prompt"
-                    try:
-                        value = float(key_value[0].strip())
-                    except ValueError:
-                        value = key_value[0].strip()
 
             elif len(key_value) == 2:
 
