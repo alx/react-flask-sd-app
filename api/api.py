@@ -1,6 +1,5 @@
 import time
 from flask import Flask, request, flash, redirect, url_for, session
-from flask_session import Session
 from werkzeug.utils import secure_filename
 from pprint import pprint
 import os
@@ -8,6 +7,7 @@ import json
 import logging
 import argparse
 from pathlib import Path
+import secrets
 
 from image_processor import ImageProcessor
 
@@ -40,8 +40,8 @@ logging.getLogger().addHandler(logging.StreamHandler())
 processor = ImageProcessor(config, logging)
 
 app = Flask(__name__, static_folder='../build', static_url_path='/')
-app.secret_key = "super secret key"
-Session(app)
+secret = secrets.token_urlsafe(32)
+app.secret_key = secret
 
 # Limit upload size to 16MB
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1000 * 1000
