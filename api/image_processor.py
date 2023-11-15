@@ -7,7 +7,7 @@ import json
 import logging
 import cv2
 import re
-import swapper
+# import swapper
 import insightface
 from insightface.app import FaceAnalysis
 from collections import Counter
@@ -114,9 +114,9 @@ class ImageProcessor:
             )
             self.face_analyser.prepare(ctx_id=0)
 
-            self.swapper = insightface.model_zoo.get_model(
-                self.models_config["swapper"]
-            )
+            # self.swapper = insightface.model_zoo.get_model(
+            #     self.models_config["swapper"]
+            # )
         # catch error on torch device full memory
         except torch.cuda.OutOfMemoryError:
             self.logging.error("Error on torch device memory, exiting")
@@ -161,8 +161,8 @@ class ImageProcessor:
             pass
 
         frame = cv2.imread(str(target))
-        for source_face, target_face in zip(source_faces, target_faces):
-            frame = self.swapper.get(frame, target_face, source_face, paste_back=True)
+        # for source_face, target_face in zip(source_faces, target_faces):
+        #     frame = self.swapper.get(frame, target_face, source_face, paste_back=True)
 
         return frame
 
