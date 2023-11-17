@@ -7,7 +7,7 @@ import json
 import logging
 import cv2
 import re
-# import swapper
+import swapper
 import insightface
 from insightface.app import FaceAnalysis
 from collections import Counter
@@ -21,8 +21,8 @@ try:
         EulerAncestralDiscreteScheduler,
         AutoencoderKL,
         UniPCMultistepScheduler,
-        # StableDiffusionControlNetImg2ImgPipeline,
-        # ControlNetModel,
+        StableDiffusionControlNetImg2ImgPipeline,
+        ControlNetModel,
     )
     from diffusers.utils import load_image, make_image_grid
     from controlnet_aux import ZoeDetector
@@ -114,9 +114,9 @@ class ImageProcessor:
             )
             self.face_analyser.prepare(ctx_id=0)
 
-            # self.swapper = insightface.model_zoo.get_model(
-            #     self.models_config["swapper"]
-            # )
+            self.swapper = insightface.model_zoo.get_model(
+                self.models_config["swapper"]
+            )
         # catch error on torch device full memory
         except torch.cuda.OutOfMemoryError:
             self.logging.error("Error on torch device memory, exiting")
@@ -148,7 +148,7 @@ class ImageProcessor:
 
         for face in faces:
             gender = "woman" if face['gender'] == 0 else "man"
-            prompt.append(f"%s %syo" % (gender, face[age]))
+            prompt.append(f"%s %syo" % (gender, face["age"]))
 
         return ", ".join(prompt)
 
@@ -161,12 +161,13 @@ class ImageProcessor:
             pass
 
         frame = cv2.imread(str(target))
-        # for source_face, target_face in zip(source_faces, target_faces):
-        #     frame = self.swapper.get(frame, target_face, source_face, paste_back=True)
+        for source_face, target_face in zip(source_faces, target_faces):
+            frame = self.swapper.get(frame, target_face, source_face, paste_back=True)
+        cv2.imwrite(str(target), frame)
 
         return frame
 
-    def run(self, prompt, filename):
+    def run(self, filename, prompt="", negative_prompt=""):
 
         src_path = self.src_path(filename)
 
@@ -178,15 +179,10 @@ class ImageProcessor:
             image_resolution=1024
         )
 
-        negative_prompt = ""
-
-        if "negative_prompt" in self.config["processor"]:
-            negative_prompt=self.config["processor"]["negative_prompt"]
-
-        # if "face_to_prompt" in self.process_config["extras"]:
-        #     source_faces = self.face_analyser.get(cv2.imread(str(src_path)))
-        #     face_prompt = self.face_to_prompt(source_faces)
-        #     prompt = ", ".join([prompt, face_prompt])
+        if "face_to_prompt" in self.process_config["extras"]:
+            source_faces = self.face_analyser.get(cv2.imread(str(src_path)))
+            face_prompt = self.face_to_prompt(source_faces)
+            prompt = ", ".join([prompt, face_prompt])
 
         config_num_inference_steps = 30
         config_adapter_conditioning_scale = 1
@@ -220,15 +216,12 @@ class ImageProcessor:
         dst_path = self.dst_path(filename)
         dst_img.save(str(dst_path))
 
-        # if "swap_faces" in self.process_config["extras"]:
+        if "swap_faces" in self.process_config["extras"]:
 
-        #     dst_img = self.face_swap(
-        #         source=src_path,
-        #         target=dst_path
-        #     )
-
-        #     dst_path = self.dst_path(filename, "", "_inswapper")
-        #     dst_img.save(str(dst_path))
+            self.face_swap(
+                source=src_path,
+                target=dst_path
+            )
 
         # if "controlnet" in self.process_config:
 
@@ -259,34 +252,3 @@ class ImageProcessor:
         #     dst_img.save(str(dst_path))
 
         return dst_path
-
-    def create_hash_from_prompt(self, prompt):
-
-        pairs = prompt.split("|")
-
-        hash_dict = {}
-
-        for pair in pairs:
-
-            key_value = pair.strip().split(":")
-
-            # no hash key specified, prompt by default
-            if len(key_value) == 1:
-
-                key = "prompt"
-                try:
-                    value = float(key_value[0].strip())
-                except ValueError:
-                    value = key_value[0].strip()
-
-            elif len(key_value) == 2:
-
-                key = key_value[0].strip().replace(" ", "_")
-                try:
-                    value = float(key_value[1].strip())
-                except ValueError:
-                    value = key_value[1].strip()
-
-            hash_dict[key] = value
-
-        return hash_dict

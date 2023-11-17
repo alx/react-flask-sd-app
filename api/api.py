@@ -71,9 +71,10 @@ def process_image():
     out.write(data)
     out.close()
 
-    prompt = request.form.get('prompt')
+    prompt = request.form.get('prompt', '')
+    negative_prompt = request.form.get('negative_prompt', '')
 
-    dst_path = processor.run(prompt, filename)
+    dst_path = processor.run(filename, prompt, negative_prompt)
 
     logging.debug(dst_path)
     return send_from_directory(
