@@ -1,6 +1,6 @@
 {
-	"log_filename": "log.txt",
-	"capture_folder": "/app/captures",
+	"log_filename": "/home/user/log.txt",
+	"capture_folder": "/home/user/captures",
 	"processor": {
 		"models": {
 			"sdxl": "stabilityai/stable-diffusion-xl-base-1.0",
@@ -12,7 +12,7 @@
 				"model_type": "zoedepth_nk"
 			},
 			"face_analysis": "buffalo_l",
-			"swapper": "/app/checkpoints/inswapper_128.onnx"
+			"swapper": "/home/user/checkpoints/inswapper_128.onnx"
 		},
 		"gpu_id": 0,
 		"output_prefix": "",

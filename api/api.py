@@ -1,3 +1,4 @@
+import base64
 import time
 from flask import Flask, request, flash, redirect, url_for, session, send_from_directory
 from werkzeug.utils import secure_filename
@@ -64,20 +65,22 @@ def get_current_time():
 @app.route('/api/processing', methods=['POST'])
 def process_image():
 
-    if 'file' not in request.files:
-        flash('No file part')
-        return redirect(request.url)
-
     filename = f"%s.jpg" % (uuid.uuid4())
-    file = request.files['file']
-    file.save(Path(config['capture_folder'], filename))
+    data = base64.b64decode(request.form.get('file'))    
+    out = open(Path(config['capture_folder'], filename), "wb")
+    out.write(data)
+    out.close()
 
     prompt = request.form.get('prompt')
 
-    processed_img = processor.run(prompt, filename)
+    dst_path = processor.run(prompt, filename)
 
-    return send_from_directory(config['capture_folder'],
-                               processed_img.name, as_attachment=True)
+    logging.debug(dst_path)
+    return send_from_directory(
+        config['capture_folder'],
+        os.path.basename(dst_path),
+        as_attachment=True
+    )
 
 
 if __name__ == "__main__":
