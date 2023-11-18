@@ -117,7 +117,6 @@ class ImageProcessor:
             self.swapper = insightface.model_zoo.get_model(
                 self.models_config["swapper"]
             )
-        # catch error on torch device full memory
         except torch.cuda.OutOfMemoryError:
             self.logging.error("Error on torch device memory, exiting")
             self.logging.error(torch.cuda.memory_summary(device=None, abbreviated=False))
