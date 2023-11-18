@@ -23,6 +23,8 @@ try:
         UniPCMultistepScheduler,
         StableDiffusionControlNetImg2ImgPipeline,
         ControlNetModel,
+        DiffusionPipeline,
+        LCMScheduler,
     )
     from diffusers.utils import load_image, make_image_grid
     from controlnet_aux import ZoeDetector
@@ -59,30 +61,41 @@ class ImageProcessor:
         try:
             device = torch.device("cuda:%i" % self.config["processor"]["gpu_id"])
 
-            euler_a = EulerAncestralDiscreteScheduler.from_pretrained(
+            # euler_a = EulerAncestralDiscreteScheduler.from_pretrained(
+            #     self.models_config["sdxl"],
+            #     subfolder="scheduler"
+            # )
+
+            # vae = AutoencoderKL.from_pretrained(
+            #     self.models_config["vae"],
+            #     torch_dtype=torch.float16
+            # )
+
+            # adapter = T2IAdapter.from_pretrained(
+            #     self.models_config["t2iAdapter"],
+            #     torch_dtype=torch.float16,
+            #     varient="fp16",
+            # ).to(device)
+
+            # self.pipe = StableDiffusionXLAdapterPipeline.from_pretrained(
+            #     self.models_config["sdxl"],
+            #     vae=vae,
+            #     adapter=adapter,
+            #     scheduler=euler_a,
+            #     torch_dtype=torch.float16,
+            #     variant="fp16",
+            # ).to(device)
+            self.pipe = DiffusionPipeline.from_pretrained(
                 self.models_config["sdxl"],
-                subfolder="scheduler"
+                variant="fp16"
             )
 
-            vae = AutoencoderKL.from_pretrained(
-                self.models_config["vae"],
-                torch_dtype=torch.float16
+            self.pipe.load_lora_weights(self.models_config["lora"])
+            self.pipe.scheduler = LCMScheduler.from_config(
+                self.pipe.scheduler.config
             )
+            self.pipe.to(device)
 
-            adapter = T2IAdapter.from_pretrained(
-                self.models_config["t2iAdapter"],
-                torch_dtype=torch.float16,
-                varient="fp16",
-            ).to(device)
-
-            self.pipe = StableDiffusionXLAdapterPipeline.from_pretrained(
-                self.models_config["sdxl"],
-                vae=vae,
-                adapter=adapter,
-                scheduler=euler_a,
-                torch_dtype=torch.float16,
-                variant="fp16",
-            ).to(device)
             self.pipe.enable_xformers_memory_efficient_attention()
 
             self.zoe_depth = ZoeDetector.from_pretrained(
