@@ -23,8 +23,6 @@ try:
         UniPCMultistepScheduler,
         StableDiffusionControlNetImg2ImgPipeline,
         ControlNetModel,
-        DiffusionPipeline,
-        LCMScheduler,
     )
     from diffusers.utils import load_image, make_image_grid
     from controlnet_aux import ZoeDetector
