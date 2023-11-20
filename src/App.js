@@ -1,5 +1,5 @@
 import React from 'react';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { BrowserRouter, Link, Switch, Route } from 'react-router-dom';
 
 import './App.css';
@@ -56,6 +56,7 @@ function App() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [images, setImages] = useState(initImages);
   const [prompts, setPrompts] = useState(initialPrompts);
+  const [selectedRange, setSelectedRange] = useState(0);
 
   const handlePromptChange = (event, index) => {
     const nextPrompts = prompts.map((prompt, i) => {
@@ -73,40 +74,71 @@ function App() {
     setPrompts(nextPrompts);
   }
 
-  window.addEventListener("keydown", (event) => {
-    if (event.key === "ArrowLeft") {
-      const nextPrompts = prompts.map((prompt, i) => {
-        if (i === 0) {
-          return {
-            name: prompt.name,
-            selected: (prompt.selected - 1 + prompt.content.length) % prompt.content.length,
-            content: prompt.content
-          }
-        } else {
-          return prompt;
-        }
-      });
-      setPrompts(nextPrompts);
-    } else if (event.key === "ArrowRight") {
-      const nextPrompts = prompts.map((prompt, i) => {
-        if (i === 0) {
-          return {
+  useEffect(() => {
 
-            name: prompt.name,
-            selected: (prompt.selected + 1) % prompt.content.length,
-            content: prompt.content
+    const onKeydown = (event) => {
+
+      if (event.key === "ArrowUp") {
+
+        event.preventDefault()
+        setSelectedRange(selectedRange === 0 ?
+                        0 : (selectedRange - 1))
+
+      } else if (event.key === "ArrowDown") {
+
+        event.preventDefault()
+        setSelectedRange(selectedRange === (prompts.length - 1) ?
+                        selectedRange : (selectedRange + 1))
+
+      } else if (event.key === "ArrowLeft") {
+
+        const nextPrompts = prompts.map((prompt, i) => {
+          if (i === selectedRange) {
+            const nextSelected = prompt.selected === 0 ?
+                  0 : (prompt.selected - 1)
+            return {
+              name: prompt.name,
+              selected: nextSelected,
+              content: prompt.content
+            }
+          } else {
+            return prompt;
           }
-        } else {
-          return prompt;
-        }
-      });
-      setPrompts(nextPrompts);
-    } else if (event.keyCode === 32) {
-      if (!isProcessing) {
-        handleProcessClick();
+        });
+        setPrompts(nextPrompts);
+
+      } else if (event.key === "ArrowRight") {
+
+        const nextPrompts = prompts.map((prompt, i) => {
+          if (i === selectedRange) {
+            const nextSelected = prompt.selected === (prompt.content.length - 1) ?
+                  prompt.selected : (prompt.selected + 1)
+            return {
+              name: prompt.name,
+              selected: nextSelected,
+              content: prompt.content
+            }
+          } else {
+            return prompt;
+          }
+        });
+        setPrompts(nextPrompts);
+
+      } else if (event.keyCode === 32) {
+
+        if (!isProcessing)
+          handleProcessClick();
+
       }
+
     }
-  }, true);
+
+    window.addEventListener("keydown", onKeydown)
+
+    return () => {
+      window.removeEventListener('keydown', onKeydown);
+    }
+  }, [selectedRange, prompts])
 
   const handleProcessClick = () => {
 
@@ -207,17 +239,19 @@ function App() {
                     />
                     <Card.Body>
                       { prompts.map((prompt, promptIndex) => (
-                        <div key={promptIndex}>
-                          <Form.Label>{ prompt.content[prompt.selected] }</Form.Label>
+                        <div key={prompt.name}>
                           <Form.Range
                             min={0}
                             value={prompt.selected}
                             max={prompt.content.length - 1}
                             step={1}
+                            disabled={selectedRange !== promptIndex}
                             onChange={(event) =>
                               handlePromptChange(event, promptIndex)
                             }
+                            onClick={() => setSelectedRange(promptIndex)}
                           />
+                          <Form.Label>{ prompt.content[prompt.selected] }</Form.Label>
                         </div>
                       ))}
                       <Button
@@ -265,7 +299,9 @@ function App() {
           </Route>
         </Switch>
         <div>
-          <Link className="App-link" to="https://github.com/alx/react-flask-sd">react-flask-sd</Link>
+          <Link className="App-link" to="https://github.com/alx/react-flask-sd">
+          react-flask-sd
+          </Link>
         </div>
       </BrowserRouter>
     </div>
