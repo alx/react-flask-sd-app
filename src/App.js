@@ -1,5 +1,5 @@
 import React from 'react';
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState } from 'react';
 import { BrowserRouter, Link, Switch, Route } from 'react-router-dom';
 
 import './App.css';
@@ -13,17 +13,38 @@ import Col from 'react-bootstrap/Col';
 import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
-import ProgressBar from 'react-bootstrap/ProgressBar';
+import Spinner from 'react-bootstrap/Spinner';
 
 let initImages = [];
 
 const initialPrompts = [
   {
-    name: "joycon1",
+    name: "slide1",
     selected: 0,
     content: [
       "all nude under the shower",
-      "disco night, 70s movie, disco costume, alice in wonderland"
+      "disco night, 70s movie, disco costume, alice in wonderland",
+      "zombie night, detailled face maquillage"
+    ]
+  },
+  {
+    name: "slide2",
+    selected: 0,
+    content: [
+      "sunset ambiance",
+      "early morning in a forrest, the sun shines on the trees",
+      "by night in the harbor, lots of boat lights in the background",
+      "a hot day in the atacama desert, by an oasis"
+    ]
+  },
+  {
+    name: "slide3",
+    selected: 0,
+    content: [
+      "photorealism, crisp photo from latest gen iphone",
+      "illusionism style, framed in a museum",
+      "colorful miro style, masterpiece",
+      "in a preschool kid drawing style"
     ]
   }
 ]
@@ -87,40 +108,6 @@ function App() {
     }
   }, true);
 
-  const [currentCount, setCount] = useState(0);
-
-  useEffect(
-    () => {
-      const processedImage = images.some(i => i.isProcessing)
-      if (processedImage) {
-
-        setTimeout(() => {
-          const nextImages = images.map((image, i) => {
-            debugger
-            if (
-              typeof image.error === "undefined" &&
-                image.isProcessing &&
-                image.progress < 100) {
-              return {
-                capture: image.capture,
-                processed: "processing.jpg",
-                prompt: image.process_prompt,
-                isProcessing: true,
-                progress: image.progress + 0.5,
-              }
-            } else {
-              return image;
-            }
-          });
-          setImages(nextImages);
-          setCount(currentCount + 1)
-        }, 100)
-        
-      }
-    },
-    [currentCount]
-  );
-
   const handleProcessClick = () => {
 
     setIsProcessing(true);
@@ -137,11 +124,9 @@ function App() {
           processed: "processing.jpg",
           prompt: process_prompt,
           isProcessing: true,
-          progress: 10,
         },
       ...images
     ]);
-    setCount(currentCount + 1)
 
     // Process image
     let formData = new FormData();
@@ -254,7 +239,14 @@ function App() {
                         <Card.Img variant="top" src={image.processed} />
                         <Card.Body>
                           { image.isProcessing && (
-                              <ProgressBar animated now={image.progress} />
+                              <Spinner
+                                as="span"
+                                animation="border"
+                                role="status"
+                                aria-hidden="true"
+                              >
+                                <span className="visually-hidden">Loading...</span>
+                              </Spinner>
                           )}
                           { image.error && (
                               <Card.Text>{image.error}</Card.Text>
