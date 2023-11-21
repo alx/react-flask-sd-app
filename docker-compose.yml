@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.api
-    image: react-flask-sd-app-api
+    image: alxgirard23/photomaiton-api:latest
     command: python3 /app/api.py --config /app/config.json
     runtime: nvidia
     deploy:
@@ -22,7 +22,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.client
-    image: react-flask-sd-app-client
+    image: alxgirard23/photomaiton-client:latest
     volumes:
       - /home/user/ssl.crt:/app/certs/ssl.crt
       - /home/user/ssl.key:/app/certs/ssl.key
