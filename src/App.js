@@ -22,29 +22,34 @@ const initialPrompts = [
     name: "slide1",
     selected: 0,
     content: [
-      "all nude under the shower",
       "disco night, 70s movie, disco costume, alice in wonderland",
-      "zombie night, detailled face maquillage"
-    ]
-  },
-  {
-    name: "slide2",
-    selected: 0,
-    content: [
-      "sunset ambiance",
-      "early morning in a forrest, the sun shines on the trees",
-      "by night in the harbor, lots of boat lights in the background",
-      "a hot day in the atacama desert, by an oasis"
-    ]
-  },
-  {
-    name: "slide3",
-    selected: 0,
-    content: [
-      "photorealism, crisp photo from latest gen iphone",
-      "illusionism style, framed in a museum",
-      "colorful miro style, masterpiece",
-      "in a preschool kid drawing style"
+      "simpstyle, Very detailed, clean, high quality, sharp image",
+      "Barbie, plastic doll, blue eyes",
+      "grimm's tales",
+      "anime artwork Miyazaki anime style, key visual, vibrant, studio anime, highly detailed",
+      "People made of smoke, black and white colors, perfect gradient, 8k, ultra detailed, ray tracing,perfect lights, black eyes, Vibrant, beautiful, painterly, detailed, textural, artistic",
+      "pixel art, pixelated, 16bit",
+      "RAW photo, subject, 8k uhd, dslr, soft lighting, high quality, clearly face, an expressive portrait of a musician lost in the magic of their music, capturing their passion",
+      "snow white,  anime artwork, drawing",
+      "Steampunk",
+      "Woodstock, hippie festival",
+      "Heroic fantasy, illustrative, painterly, matte painting, highly detailed",
+      "people in a suit with a tie, cinematic photo, 35mm photograph, film, bokeh, professional, 4k, highly detailed",
+      "A black and white vintage, timeworn family photograph from 1890, rural clothing, ultra-detailed, 8k, slightly sepia tone",
+      "a black and white photo, in the style of Studio Harcourt, featured on cg society, studio portrait",
+      "RAW photo, subject, 8k uhd, dslr, soft lighting, high quality, clearly face, a portrait of a regal monarch, adorned with intricate jewelry and an air of authority",
+      "Gangsters in a new york street,godfather, analog film photo, faded film, desaturated, 35mm photo, grainy, vignette, vintage, Kodachrome, Lomography, stained, highly detailed, found footage",
+      "black & white, Jacques Tati",
+      "Zombies",
+      "The mask movie",
+      "Flowers, photo by James C. Leyendecker, studio portrait, dynamic pose, national geographic photo, retrofuturism, biomorphic",
+      "RAW photo, subject, 8k uhd, dslr, soft lighting, high quality, clearly face, a futuristic visage with cybernetic enhancements seamlessly integrated into human features",
+      "naked under the shower",
+      "swap faces",
+      "Las vegas parano, vhs, psychedelic, Kodachrome",
+      "Star wars jedi, cinematic film still, shallow depth of field, vignette, highly detailed, high budget Hollywood movie, bokeh, cinemascope, moody, epic, gorgeous, film grain, grainy",
+      "closeup portrait of Persian, royal clothing, makeup, jewelry, wind-blown, symmetric, desert, ((sands, dusty and foggy, sand storm, winds)) bokeh, depth of field, centered",
+      "RAW photo, subject, 8k uhd, dslr, soft lighting, high quality, clearly face, an exquisite portrait of a serene face, capturing the essence of tranquility and inner peace"
     ]
   }
 ]
@@ -126,6 +131,7 @@ function App() {
 
       } else if (event.keyCode === 32) {
 
+        event.preventDefault()
         if (!isProcessing)
           handleProcessClick();
 
@@ -270,7 +276,7 @@ function App() {
                     <Col key={index}>
                       <Card style={{ width: '18rem' }}>
                         <Card.Img variant="top" src={image.capture} />
-                        <Card.Img variant="top" src={image.processed} />
+                        <Card.Img src={image.processed} />
                         <Card.Body>
                           { image.isProcessing && (
                               <Spinner
