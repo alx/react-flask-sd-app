@@ -168,7 +168,7 @@ function App() {
 
     // Process image
     let formData = new FormData();
-    formData.append('prompt', prompt);
+    formData.append('prompt', process_prompt);
     formData.append(
       'file',
       screenshot.replace("data:image/jpeg;base64,", "")
