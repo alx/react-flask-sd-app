@@ -6,6 +6,10 @@ services:
     image: react-flask-sd-app-api
     command: python3 /app/api.py --config /app/config.json
     runtime: nvidia
+    deploy:
+      resources:
+        limits:
+          memory: 16G
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
     volumes:
