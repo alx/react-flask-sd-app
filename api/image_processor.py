@@ -84,6 +84,10 @@ class ImageProcessor:
                 variant="fp16",
             ).to(device)
 
+            if "lora_id" in self.models_config:
+                lora_id = self.models_config["lora_id"]
+                self.pipe.load_lora_weights(lora_id)
+
             ### LCM LORA pipeline
             # self.pipe = DiffusionPipeline.from_pretrained(
             #     self.models_config["sdxl"],
