@@ -157,14 +157,15 @@ function App() {
     const screenshot = webcamRef.current.getScreenshot();
 
     // Add processing screen
+    const screen = {
+      id: Date.now(),
+      capture: screenshot,
+      result: "processing.jpg",
+      prompt: process_prompt,
+      isProcessing: true,
+    }
     setImages([
-        {
-          id: Date.now(),
-          capture: screenshot,
-          result: "processing.jpg",
-          prompt: process_prompt,
-          isProcessing: true,
-        },
+      screen,
       ...images
     ]);
 
@@ -192,7 +193,6 @@ function App() {
       .then(result => {
 
         const resultObj = URL.createObjectURL(result);
-        const screen = images[0]
 
         // Remove processing screen
         setImages(
@@ -202,7 +202,7 @@ function App() {
         // Show result image
         setImages([
           Object.assign(
-            { result: result },
+            { result: resultObj },
             screen
           ),
           ...images
@@ -211,7 +211,6 @@ function App() {
       })
       .catch(error => {
         console.error('Error:', error);
-        const screen = images[0]
 
         // Remove processing screen
         setImages(
@@ -288,7 +287,7 @@ function App() {
                     <Col key={image.id}>
                       <Card style={{ width: '18rem' }}>
                         <Card.Img variant="top" src={image.capture} />
-                        <Card.Img src={image.result} />
+                        <Card.Img variant="bottom" src={image.result} />
                         <Card.Body>
                           { image.isProcessing && (
                               <Spinner
