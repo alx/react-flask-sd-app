@@ -146,100 +146,104 @@ function App() {
     }
   }, [selectedRange, prompts])
 
+  const takeScreenshot = () => {
+    const process_prompt = prompts.map(prompt => {
+      return prompt.content[prompt.selected];
+    }).join(", ");
+
+    const screenshot = webcamRef.current.getScreenshot();
+
+    const currentImage = {
+      id: Date.now(),
+      capture: screenshot,
+      result: "processing.jpg",
+      prompt: process_prompt,
+      isProcessing: true,
+    }
+    setImages([
+      currentImage,
+      ...images
+    ]);
+    setProcessingStep(2);
+  }
+
+  const apiProcessing = () => {
+    const currentImage = images[0];
+
+    let formData = new FormData();
+    formData.append('prompt', currentImage.prompt);
+    formData.append(
+      'file',
+      currentImage.capture.replace("data:image/jpeg;base64,", "")
+    );
+
+    fetch(`/api/processing`,
+        {
+          method: 'POST',
+          body: formData
+        })
+    .then(response => {
+
+      if (response.status !== 200)
+        throw new Error(`${response.status} - ${response.statusText}`);
+
+      return response.blob()
+
+    })
+    .then(result => {
+
+      const nextImages = images.map((image, i) => {
+        if (i === 0) {
+          const resultObj = URL.createObjectURL(result);
+          return Object.assign(
+            {
+              isProcessing: false,
+              result: resultObj
+            },
+            currentImage
+          )
+        } else {
+          return image;
+        }
+      });
+      setImages(nextImages)
+
+    })
+    .catch(error => {
+      console.error('Error:', error);
+
+      const nextImages = images.map((image, i) => {
+        if (i === 0) {
+          return Object.assign(
+            {
+              isProcessing: false,
+              result: "erorr.jpg",
+              error: error.toString()
+            },
+            currentImage
+          )
+        } else {
+          return image;
+        }
+      });
+      setImages(nextImages)
+    })
+    .finally(() => {
+      setProcessingStep(0);
+    })
+  }
+
   useEffect(() => {
 
     if(processingStep === 0) return;
 
     if (processingStep === 1) {
-
-      const process_prompt = prompts.map(prompt => {
-        return prompt.content[prompt.selected];
-      }).join(", ");
-
-      const screenshot = webcamRef.current.getScreenshot();
-
-      const currentImage = {
-        id: Date.now(),
-        capture: screenshot,
-        result: "processing.jpg",
-        prompt: process_prompt,
-        isProcessing: true,
-      }
-      setImages([
-        currentImage,
-        ...images
-      ]);
-
-      setProcessingStep(2);
-
+      takeScreenshot();
     } else if (processingStep === 2) {
-
-      const currentImage = images[0];
-
-      let formData = new FormData();
-      formData.append('prompt', currentImage.prompt);
-      formData.append(
-        'file',
-        currentImage.capture.replace("data:image/jpeg;base64,", "")
-      );
-
-      fetch(`/api/processing`,
-          {
-            method: 'POST',
-            body: formData
-          })
-      .then(response => {
-
-        if (response.status !== 200)
-          throw new Error(`${response.status} - ${response.statusText}`);
-
-        return response.blob()
-
-      })
-      .then(result => {
-
-        const nextImages = images.map((image, i) => {
-          if (i === 0) {
-            const resultObj = URL.createObjectURL(result);
-            return Object.assign(
-              {
-                isProcessing: false,
-                result: resultObj
-              },
-              currentImage
-            )
-          } else {
-            return image;
-          }
-        });
-        setImages(nextImages)
-
-      })
-      .catch(error => {
-        console.error('Error:', error);
-
-        const nextImages = images.map((image, i) => {
-          if (i === 0) {
-            return Object.assign(
-              {
-                isProcessing: false,
-                result: "erorr.jpg",
-                error: error.toString()
-              },
-              currentImage
-            )
-          } else {
-            return image;
-          }
-        });
-        setImages(nextImages)
-      })
-      .finally(() => {
-        setProcessingStep(0);
-      })
+      apiProcessing();
     }
 
-  }, [images, processingStep, prompts])
+  }, [processingStep])
 
   const handleProcessClick = () => {
     setProcessingStep(1);
