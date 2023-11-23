@@ -192,42 +192,41 @@ function App() {
       })
       .then(result => {
 
-        const resultObj = URL.createObjectURL(result);
-
-        // Remove processing
-        setImages(
-          images.filter((image, i) => i !== 0)
-        );
-
-        // Show result image
-        setImages([
-          Object.assign(
-            { result: resultObj },
-            currentImage
-          ),
-          ...images
-        ]);
+        const nextImages = images.map((image, i) => {
+          if (i === 0) {
+            const resultObj = URL.createObjectURL(result);
+            return Object.assign(
+              {
+                isProcessing: false,
+                result: resultObj
+              },
+              currentImage
+            )
+          } else {
+            return image;
+          }
+        });
+        setImages(nextImages)
 
       })
       .catch(error => {
         console.error('Error:', error);
 
-        // Remove processing
-        setImages(
-          images.filter((image, i) => i !== 0)
-        );
-
-        // Show error
-        setImages([
-          Object.assign(
-            {
-              result: "erorr.jpg",
-              error: error.toString()
-            },
-            currentImage
-          ),
-          ...images
-        ]);
+        const nextImages = images.map((image, i) => {
+          if (i === 0) {
+            return Object.assign(
+              {
+                isProcessing: false,
+                result: "erorr.jpg",
+                error: error.toString()
+              },
+              currentImage
+            )
+          } else {
+            return image;
+          }
+        });
+        setImages(nextImages)
       })
       .finally(() => {
         setIsProcessing(false);
