@@ -156,10 +156,12 @@ function App() {
 
     const screenshot = webcamRef.current.getScreenshot();
 
+    // Add processing screen
     setImages([
         {
+          id: Date.now(),
           capture: screenshot,
-          processed: "processing.jpg",
+          result: "processing.jpg",
           prompt: process_prompt,
           isProcessing: true,
         },
@@ -189,34 +191,44 @@ function App() {
       })
       .then(result => {
 
-        const processed = URL.createObjectURL(result);
+        const resultObj = URL.createObjectURL(result);
+        const screen = images[0]
+
+        // Remove processing screen
         setImages(
           images.filter((image, i) => i !== 0)
         );
+
+        // Show result image
         setImages([
-            {
-              capture: screenshot,
-              processed: processed,
-              prompt: process_prompt
-            },
+          Object.assign(
+            { result: result },
+            screen
+          ),
           ...images
         ]);
 
       })
       .catch(error => {
         console.error('Error:', error);
+        const screen = images[0]
+
+        // Remove processing screen
         setImages(
           images.filter((image, i) => i !== 0)
         );
+
+        // Show error screen
         setImages([
+          Object.assign(
             {
-              capture: screenshot,
-              processed: "error.jpg",
-              prompt: process_prompt,
+              result: "erorr.jpg",
               error: error.toString()
             },
+            screen
+          ),
           ...images
-        ])
+        ]);
       })
       .finally(() => {
         setIsProcessing(false);
@@ -273,10 +285,10 @@ function App() {
                 <Col sm="9">
                   <Row xs={1} md={3} className="g-4">
                   { images.map((image, index) => (
-                    <Col key={index}>
+                    <Col key={image.id}>
                       <Card style={{ width: '18rem' }}>
                         <Card.Img variant="top" src={image.capture} />
-                        <Card.Img src={image.processed} />
+                        <Card.Img src={image.result} />
                         <Card.Body>
                           { image.isProcessing && (
                               <Spinner
