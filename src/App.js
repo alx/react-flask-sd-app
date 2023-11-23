@@ -283,7 +283,7 @@ function App() {
                       <Button
                         onClick={handleProcessClick}
                         variant="primary"
-                        disabled={isProcessing}
+                        disabled={processingStep !== 0}
                       >
                         Capture
                       </Button>
