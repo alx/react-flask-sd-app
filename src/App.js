@@ -156,8 +156,8 @@ function App() {
 
     const screenshot = webcamRef.current.getScreenshot();
 
-    // Add processing screen
-    const screen = {
+    // Add processing
+    const currentImage = {
       id: Date.now(),
       capture: screenshot,
       result: "processing.jpg",
@@ -165,7 +165,7 @@ function App() {
       isProcessing: true,
     }
     setImages([
-      screen,
+      currentImage,
       ...images
     ]);
 
@@ -194,7 +194,7 @@ function App() {
 
         const resultObj = URL.createObjectURL(result);
 
-        // Remove processing screen
+        // Remove processing
         setImages(
           images.filter((image, i) => i !== 0)
         );
@@ -203,7 +203,7 @@ function App() {
         setImages([
           Object.assign(
             { result: resultObj },
-            screen
+            currentImage
           ),
           ...images
         ]);
@@ -212,19 +212,19 @@ function App() {
       .catch(error => {
         console.error('Error:', error);
 
-        // Remove processing screen
+        // Remove processing
         setImages(
           images.filter((image, i) => i !== 0)
         );
 
-        // Show error screen
+        // Show error
         setImages([
           Object.assign(
             {
               result: "erorr.jpg",
               error: error.toString()
             },
-            screen
+            currentImage
           ),
           ...images
         ]);
