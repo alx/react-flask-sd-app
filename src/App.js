@@ -58,7 +58,7 @@ function App() {
 
   const webcamRef = useRef(null);
 
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [processingStep, setProcessingStep] = useState(0);
   const [images, setImages] = useState(initImages);
   const [prompts, setPrompts] = useState(initialPrompts);
   const [selectedRange, setSelectedRange] = useState(0);
@@ -132,7 +132,7 @@ function App() {
       } else if (event.keyCode === 32) {
 
         event.preventDefault()
-        if (!isProcessing)
+        if (processingStep === 0)
           handleProcessClick();
 
       }
@@ -146,38 +146,44 @@ function App() {
     }
   }, [selectedRange, prompts])
 
-  const handleProcessClick = () => {
+  useEffect(() => {
 
-    setIsProcessing(true);
+    if(processingStep === 0) return;
 
-    const process_prompt = prompts.map(prompt => {
-      return prompt.content[prompt.selected];
-    }).join(", ");
+    if (processingStep === 1) {
 
-    const screenshot = webcamRef.current.getScreenshot();
+      const process_prompt = prompts.map(prompt => {
+        return prompt.content[prompt.selected];
+      }).join(", ");
 
-    // Add processing
-    const currentImage = {
-      id: Date.now(),
-      capture: screenshot,
-      result: "processing.jpg",
-      prompt: process_prompt,
-      isProcessing: true,
-    }
-    setImages([
-      currentImage,
-      ...images
-    ]);
+      const screenshot = webcamRef.current.getScreenshot();
 
-    // Process image
-    let formData = new FormData();
-    formData.append('prompt', process_prompt);
-    formData.append(
-      'file',
-      screenshot.replace("data:image/jpeg;base64,", "")
-    );
+      const currentImage = {
+        id: Date.now(),
+        capture: screenshot,
+        result: "processing.jpg",
+        prompt: process_prompt,
+        isProcessing: true,
+      }
+      setImages([
+        currentImage,
+        ...images
+      ]);
 
-    fetch(`/api/processing`,
+      setProcessingStep(2);
+
+    } else if (processingStep === 2) {
+
+      const currentImage = images[0];
+
+      let formData = new FormData();
+      formData.append('prompt', currentImage.prompt);
+      formData.append(
+        'file',
+        currentImage.capture.replace("data:image/jpeg;base64,", "")
+      );
+
+      fetch(`/api/processing`,
           {
             method: 'POST',
             body: formData
@@ -229,10 +235,14 @@ function App() {
         setImages(nextImages)
       })
       .finally(() => {
-        setIsProcessing(false);
+        setProcessingStep(0);
       })
+    }
 
-    ;
+  }, [images, processingStep, prompts])
+
+  const handleProcessClick = () => {
+    setProcessingStep(1);
   }
 
   return (
