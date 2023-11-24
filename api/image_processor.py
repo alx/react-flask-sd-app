@@ -11,6 +11,7 @@ import swapper
 import insightface
 from insightface.app import FaceAnalysis
 from collections import Counter
+from pycivitai import civitai_download
 
 CURRENT_PATH = os.path.dirname(os.path.abspath(__file__))
 
@@ -84,9 +85,9 @@ class ImageProcessor:
                 variant="fp16",
             ).to(device)
 
-            if "lora_id" in self.models_config:
-                lora_id = self.models_config["lora_id"]
-                self.pipe.load_lora_weights(lora_id)
+            # if "lora_id" in self.models_config:
+            #     lora_id = self.models_config["lora_id"]
+            #     self.pipe.load_lora_weights(lora_id)
 
             ### LCM LORA pipeline
             # self.pipe = DiffusionPipeline.from_pretrained(
@@ -183,7 +184,7 @@ class ImageProcessor:
 
         return frame
 
-    def run(self, filename, prompt="", negative_prompt=""):
+    def run(self, filename, prompt="", negative_prompt="", lora=None):
 
         src_path = self.src_path(filename)
 
@@ -194,6 +195,15 @@ class ImageProcessor:
             detect_resolution=512,
             image_resolution=1024
         )
+
+        if lora is not None:
+            lora_path = civitai_download(
+                lora["civitai_id"],
+                version=lora["civitai_version"]
+            )
+            self.pipe.load_lora_weights(lora_path)
+        else:
+            self.pipe.unload_lora_weights()
 
         if "face_to_prompt" in self.process_config["extras"]:
             source_faces = self.face_analyser.get(cv2.imread(str(src_path)))
