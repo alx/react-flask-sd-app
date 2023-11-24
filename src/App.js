@@ -81,6 +81,16 @@ function App() {
     setRanges(nextRanges);
   }
 
+  const handleRandomizeRanges = () => {
+    const nextRanges = ranges.map(range => {
+      return Object.assign(
+        range,
+        { selected: Math.floor(Math.random() * range.content.length) }
+      );
+    });
+    setRanges(nextRanges);
+  }
+
   useEffect(() => {
 
     const onKeydown = (event) => {
@@ -129,6 +139,11 @@ function App() {
         });
         setRanges(nextRanges);
 
+      } else if (event.key === "r") {
+
+        event.preventDefault()
+        handleRandomizeRanges()
+
       } else if (event.keyCode === 32) {
 
         event.preventDefault()
@@ -144,7 +159,7 @@ function App() {
     return () => {
       window.removeEventListener('keydown', onKeydown);
     }
-  }, [selectedRange, ranges])
+  }, [selectedRange, ranges, processingStep])
 
   const takeScreenshot = () => {
 
@@ -290,11 +305,22 @@ function App() {
                         </div>
                       ))}
                       <Button
+                        onClick={handleRandomizeRanges}
+                        variant="secondary"
+                        className="me-2"
+                      >
+                        Randomize
+                      </Button>
+                      <Button
                         onClick={handleProcessClick}
                         variant="primary"
                         disabled={processingStep !== 0}
                       >
-                        Capture
+                      { processingStep !== 0 ?
+                        "Processing..."
+                        :
+                        "Capture"
+                      }
                       </Button>
                     </Card.Body>
                   </Card>
