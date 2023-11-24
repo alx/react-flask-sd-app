@@ -196,11 +196,11 @@ function App() {
         if (i === 0) {
           const resultObj = URL.createObjectURL(result);
           return Object.assign(
+            currentImage,
             {
               isProcessing: false,
               result: resultObj
-            },
-            currentImage
+            }
           )
         } else {
           return image;
@@ -215,12 +215,12 @@ function App() {
       const nextImages = images.map((image, i) => {
         if (i === 0) {
           return Object.assign(
+            currentImage,
             {
               isProcessing: false,
               result: "erorr.jpg",
               error: error.toString()
-            },
-            currentImage
+            }
           )
         } else {
           return image;
