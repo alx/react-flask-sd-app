@@ -17,40 +17,43 @@ import Spinner from 'react-bootstrap/Spinner';
 
 let initImages = [];
 
+
 const initialPrompts = [
+  "disco night, 70s movie, disco costume, alice in wonderland",
+  "simpstyle, Very detailed, clean, high quality, sharp image",
+  "Barbie, plastic doll, blue eyes",
+  "grimm's tales",
+  "anime artwork Miyazaki anime style, key visual, vibrant, studio anime, highly detailed",
+  "People made of smoke, black and white colors, perfect gradient, 8k, ultra detailed, ray tracing,perfect lights, black eyes, Vibrant, beautiful, painterly, detailed, textural, artistic",
+  "pixel art, pixelated, 16bit",
+  "RAW photo, subject, 8k uhd, dslr, soft lighting, high quality, clearly face, an expressive portrait of a musician lost in the magic of their music, capturing their passion",
+  "snow white,  anime artwork, drawing",
+  "Steampunk",
+  "Woodstock, hippie festival",
+  "Heroic fantasy, illustrative, painterly, matte painting, highly detailed",
+  "people in a suit with a tie, cinematic photo, 35mm photograph, film, bokeh, professional, 4k, highly detailed",
+  "A black and white vintage, timeworn family photograph from 1890, rural clothing, ultra-detailed, 8k, slightly sepia tone",
+  "a black and white photo, in the style of Studio Harcourt, featured on cg society, studio portrait",
+  "RAW photo, subject, 8k uhd, dslr, soft lighting, high quality, clearly face, a portrait of a regal monarch, adorned with intricate jewelry and an air of authority",
+  "Gangsters in a new york street,godfather, analog film photo, faded film, desaturated, 35mm photo, grainy, vignette, vintage, Kodachrome, Lomography, stained, highly detailed, found footage",
+  "black & white, Jacques Tati",
+  "Zombies",
+  "The mask movie",
+  "Flowers, photo by James C. Leyendecker, studio portrait, dynamic pose, national geographic photo, retrofuturism, biomorphic",
+  "RAW photo, subject, 8k uhd, dslr, soft lighting, high quality, clearly face, a futuristic visage with cybernetic enhancements seamlessly integrated into human features",
+  "naked under the shower",
+  "swap faces",
+  "Las vegas parano, vhs, psychedelic, Kodachrome",
+  "Star wars jedi, cinematic film still, shallow depth of field, vignette, highly detailed, high budget Hollywood movie, bokeh, cinemascope, moody, epic, gorgeous, film grain, grainy",
+  "closeup portrait of Persian, royal clothing, makeup, jewelry, wind-blown, symmetric, desert, ((sands, dusty and foggy, sand storm, winds)) bokeh, depth of field, centered",
+  "RAW photo, subject, 8k uhd, dslr, soft lighting, high quality, clearly face, an exquisite portrait of a serene face, capturing the essence of tranquility and inner peace"
+]
+
+const initialRanges = [
   {
-    name: "slide1",
-    selected: 0,
-    content: [
-      "disco night, 70s movie, disco costume, alice in wonderland",
-      "simpstyle, Very detailed, clean, high quality, sharp image",
-      "Barbie, plastic doll, blue eyes",
-      "grimm's tales",
-      "anime artwork Miyazaki anime style, key visual, vibrant, studio anime, highly detailed",
-      "People made of smoke, black and white colors, perfect gradient, 8k, ultra detailed, ray tracing,perfect lights, black eyes, Vibrant, beautiful, painterly, detailed, textural, artistic",
-      "pixel art, pixelated, 16bit",
-      "RAW photo, subject, 8k uhd, dslr, soft lighting, high quality, clearly face, an expressive portrait of a musician lost in the magic of their music, capturing their passion",
-      "snow white,  anime artwork, drawing",
-      "Steampunk",
-      "Woodstock, hippie festival",
-      "Heroic fantasy, illustrative, painterly, matte painting, highly detailed",
-      "people in a suit with a tie, cinematic photo, 35mm photograph, film, bokeh, professional, 4k, highly detailed",
-      "A black and white vintage, timeworn family photograph from 1890, rural clothing, ultra-detailed, 8k, slightly sepia tone",
-      "a black and white photo, in the style of Studio Harcourt, featured on cg society, studio portrait",
-      "RAW photo, subject, 8k uhd, dslr, soft lighting, high quality, clearly face, a portrait of a regal monarch, adorned with intricate jewelry and an air of authority",
-      "Gangsters in a new york street,godfather, analog film photo, faded film, desaturated, 35mm photo, grainy, vignette, vintage, Kodachrome, Lomography, stained, highly detailed, found footage",
-      "black & white, Jacques Tati",
-      "Zombies",
-      "The mask movie",
-      "Flowers, photo by James C. Leyendecker, studio portrait, dynamic pose, national geographic photo, retrofuturism, biomorphic",
-      "RAW photo, subject, 8k uhd, dslr, soft lighting, high quality, clearly face, a futuristic visage with cybernetic enhancements seamlessly integrated into human features",
-      "naked under the shower",
-      "swap faces",
-      "Las vegas parano, vhs, psychedelic, Kodachrome",
-      "Star wars jedi, cinematic film still, shallow depth of field, vignette, highly detailed, high budget Hollywood movie, bokeh, cinemascope, moody, epic, gorgeous, film grain, grainy",
-      "closeup portrait of Persian, royal clothing, makeup, jewelry, wind-blown, symmetric, desert, ((sands, dusty and foggy, sand storm, winds)) bokeh, depth of field, centered",
-      "RAW photo, subject, 8k uhd, dslr, soft lighting, high quality, clearly face, an exquisite portrait of a serene face, capturing the essence of tranquility and inner peace"
-    ]
+    name: "prompt",
+    selected: Math.floor(Math.random() * initialPrompts.length),
+    content: initialPrompts
   }
 ]
 
@@ -60,23 +63,22 @@ function App() {
 
   const [processingStep, setProcessingStep] = useState(0);
   const [images, setImages] = useState(initImages);
-  const [prompts, setPrompts] = useState(initialPrompts);
+  const [ranges, setRanges] = useState(initialRanges);
   const [selectedRange, setSelectedRange] = useState(0);
 
-  const handlePromptChange = (event, index) => {
-    const nextPrompts = prompts.map((prompt, i) => {
+  const handleRangeChange = (event, index) => {
+    const nextRanges = ranges.map((range, i) => {
       if (i === index) {
-        return {
-          name: prompt.name,
-          selected: parseInt(event.target.value),
-          content: prompt.content
-        }
+        return Object.assign(
+          range,
+          { selected: parseInt(event.target.value) }
+        );
       } else {
-        return prompt;
+        return range;
       }
     });
 
-    setPrompts(nextPrompts);
+    setRanges(nextRanges);
   }
 
   useEffect(() => {
@@ -92,48 +94,46 @@ function App() {
       } else if (event.key === "ArrowDown") {
 
         event.preventDefault()
-        setSelectedRange(selectedRange === (prompts.length - 1) ?
+        setSelectedRange(selectedRange === (ranges.length - 1) ?
                         selectedRange : (selectedRange + 1))
 
       } else if (event.key === "ArrowLeft") {
 
-        const nextPrompts = prompts.map((prompt, i) => {
+        const nextRanges = ranges.map((range, i) => {
           if (i === selectedRange) {
-            const nextSelected = prompt.selected === 0 ?
-                  0 : (prompt.selected - 1)
-            return {
-              name: prompt.name,
-              selected: nextSelected,
-              content: prompt.content
-            }
+            const nextSelected = range.selected === 0 ?
+                  0 : (range.selected - 1)
+            return Object.assign(
+              range,
+              { selected: nextSelected }
+            );
           } else {
-            return prompt;
+            return range;
           }
         });
-        setPrompts(nextPrompts);
+        setRanges(nextRanges);
 
       } else if (event.key === "ArrowRight") {
 
-        const nextPrompts = prompts.map((prompt, i) => {
+        const nextRanges = ranges.map((range, i) => {
           if (i === selectedRange) {
-            const nextSelected = prompt.selected === (prompt.content.length - 1) ?
-                  prompt.selected : (prompt.selected + 1)
-            return {
-              name: prompt.name,
-              selected: nextSelected,
-              content: prompt.content
-            }
+            const nextSelected = range.selected === (range.content.length - 1) ?
+                  range.selected : (range.selected + 1)
+            return Object.assign(
+              range,
+              { selected: nextSelected }
+            );
           } else {
-            return prompt;
+            return range;
           }
         });
-        setPrompts(nextPrompts);
+        setRanges(nextRanges);
 
       } else if (event.keyCode === 32) {
 
         event.preventDefault()
         if (processingStep === 0)
-          handleProcessClick();
+          setProcessingStep(1);
 
       }
 
@@ -144,11 +144,14 @@ function App() {
     return () => {
       window.removeEventListener('keydown', onKeydown);
     }
-  }, [selectedRange, prompts])
+  }, [selectedRange, ranges])
 
   const takeScreenshot = () => {
-    const process_prompt = prompts.map(prompt => {
-      return prompt.content[prompt.selected];
+
+    const process_prompt = ranges
+          .filter(r => r.name === "prompt")
+          .map(range => {
+      return range.content[range.selected];
     }).join(", ");
 
     const screenshot = webcamRef.current.getScreenshot();
@@ -268,20 +271,22 @@ function App() {
                       className="card-img-top"
                     />
                     <Card.Body>
-                      { prompts.map((prompt, promptIndex) => (
-                        <div key={prompt.name}>
+                      { ranges.map((range, rangeIndex) => (
+                        <div key={range.name}>
                           <Form.Range
                             min={0}
-                            value={prompt.selected}
-                            max={prompt.content.length - 1}
+                            value={range.selected}
+                            max={range.content.length - 1}
                             step={1}
-                            disabled={selectedRange !== promptIndex}
+                            disabled={selectedRange !== rangeIndex}
                             onChange={(event) =>
-                              handlePromptChange(event, promptIndex)
+                              handleRangeChange(event, rangeIndex)
                             }
-                            onClick={() => setSelectedRange(promptIndex)}
+                            onClick={() => setSelectedRange(rangeIndex)}
                           />
-                          <Form.Label>{ prompt.content[prompt.selected] }</Form.Label>
+                          <Form.Label>
+                            { range.content[range.selected] }
+                          </Form.Label>
                         </div>
                       ))}
                       <Button
