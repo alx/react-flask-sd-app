@@ -184,7 +184,7 @@ class ImageProcessor:
 
         return frame
 
-    def run(self, filename, prompt="", negative_prompt="", lora=None):
+    def run(self, filename, prompt="", negative_prompt="", loras=[]):
 
         src_path = self.src_path(filename)
 
@@ -196,14 +196,13 @@ class ImageProcessor:
             image_resolution=1024
         )
 
-        if lora is not None:
+        self.pipe.unload_lora_weights()
+        for lora in loras:
             lora_path = civitai_download(
                 lora["civitai_id"],
                 version=lora["civitai_version"]
             )
             self.pipe.load_lora_weights(lora_path)
-        else:
-            self.pipe.unload_lora_weights()
 
         if "face_to_prompt" in self.process_config["extras"]:
             source_faces = self.face_analyser.get(cv2.imread(str(src_path)))
