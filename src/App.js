@@ -84,7 +84,7 @@ const initialLoras = [
   {
     enabled: false,
     name: "PixelArt",
-    prompt: "",
+    prompt: "pixelart",
     weight: 0.8,
     civitai_id: 120096,
     civitai_version: "v1.1",
@@ -115,12 +115,23 @@ function App() {
   const [formOptions, setFormOptions] = useState(initialFormOptions);
   const [selectedRange, setSelectedRange] = useState(0);
 
-  const handleRangeChange = useCallback((event, index) => {
-    const nextRanges = ranges.map((range, i) => {
-      if (i === index) {
+  const rangePrompt = ranges.find(r => r.name === "prompt")
+  const [currentPrompt, setCurrentPrompt] = useState(
+    rangePrompt.content[rangePrompt.selected].name
+  );
+
+  const handleRangeChange = useCallback((rangeName, contentIndex) => {
+    const nextRanges = ranges.map(range => {
+      if (range.name === rangeName) {
+
+        if (range.name === "prompt") {
+          const promptContent = range.content[contentIndex];
+          setCurrentPrompt(promptContent.name);
+        }
+
         return Object.assign(
           range,
-          { selected: parseInt(event.target.value) }
+          { selected: contentIndex }
         );
       } else {
         return range;
@@ -156,9 +167,19 @@ function App() {
 
   const handleRandomizeRanges = useCallback(() => {
     const nextRanges = ranges.map(range => {
+
+      const randomIndex = Math.floor(
+        Math.random() * range.content.length
+      );
+
+      if (range.name === "prompt") {
+        const promptContent = range.content[randomIndex];
+        setCurrentPrompt(promptContent.name);
+      }
+
       return Object.assign(
         range,
-        { selected: Math.floor(Math.random() * range.content.length) }
+        { selected: randomIndex }
       );
     });
     setRanges(nextRanges);
@@ -190,27 +211,19 @@ function App() {
 
     if (isProcessing) return;
 
-    const prompt_range = ranges.find(r => r.name === "prompt")
-    let process_prompt = prompt_range
-          .content[prompt_range.selected]
-          .name;
-
     const lora_option = formOptions.find(r => r.name === "lora")
-    const process_loras = lora_option.content.filter(l => l.enabled)
-
-    for (const lora of process_loras) {
-      process_prompt = lora.prompt + process_prompt;
-    }
+    const loras = lora_option.content.filter(l => l.enabled)
 
     const screenshot = webcamRef.current.getScreenshot();
+    const prompt = loras.map(l => l.prompt).join(", ") + " " + currentPrompt;
 
     const captureImage = {
       id: Date.now(),
+      isProcessing: true,
       capture: screenshot,
       result: "processing.jpg",
-      prompt: process_prompt,
-      isProcessing: true,
-      loras: process_loras
+      prompt: prompt,
+      loras: loras
     }
 
     setResultImages([
@@ -218,67 +231,45 @@ function App() {
       ...resultImages
     ]);
 
-  }, [isProcessing, ranges, formOptions, resultImages])
+  }, [
+    isProcessing,
+    formOptions,
+    currentPrompt,
+    resultImages
+  ])
 
   useEffect(() => {
 
     const onKeydown = (event) => {
 
-      if (event.key === "ArrowUp") {
+      // if (event.key === "ArrowUp") {
 
-        event.preventDefault()
-        setSelectedRange(selectedRange === 0 ?
-                        0 : (selectedRange - 1))
+      //   event.preventDefault()
+      //   setSelectedRange(selectedRange === 0 ?
+      //                   0 : (selectedRange - 1))
 
-      } else if (event.key === "ArrowDown") {
+      // } else if (event.key === "ArrowDown") {
 
-        event.preventDefault()
-        setSelectedRange(selectedRange === (ranges.length - 1) ?
-                        selectedRange : (selectedRange + 1))
+      //   event.preventDefault()
+      //   setSelectedRange(selectedRange === (ranges.length - 1) ?
+      //                   selectedRange : (selectedRange + 1))
 
-      } else if (event.key === "ArrowLeft") {
+      // } else if (event.key === "ArrowLeft") {
 
-        const nextRanges = ranges.map((range, i) => {
-          if (i === selectedRange) {
-            const nextSelected = range.selected === 0 ?
-                  0 : (range.selected - 1)
-            return Object.assign(
-              range,
-              { selected: nextSelected }
-            );
-          } else {
-            return range;
-          }
-        });
-        setRanges(nextRanges);
+      //   const range = ranges[selectedRange];
+      //   const nextSelected = range.selected === 0 ?
+      //         0 : (range.selected - 1)
+      //   handleRangeChange(range.name, nextSelected)
 
-      } else if (event.key === "ArrowRight") {
+      // } else if (event.key === "ArrowRight") {
 
-        const nextRanges = ranges.map((range, i) => {
-          if (i === selectedRange) {
-            const nextSelected = range.selected === (range.content.length - 1) ?
-                  range.selected : (range.selected + 1)
-            return Object.assign(
-              range,
-              { selected: nextSelected }
-            );
-          } else {
-            return range;
-          }
-        });
-        setRanges(nextRanges);
+      //   const range = ranges[selectedRange];
+      //   const nextSelected =
+      //         range.selected === (range.content.length - 1) ?
+      //             range.selected : (range.selected + 1)
+      //   handleRangeChange(range.name, nextSelected)
 
-      } else if (event.key === "r") {
-
-        event.preventDefault()
-        handleRandomize()
-
-      } else if (event.keyCode === 32) {
-
-        event.preventDefault()
-        takeScreenshot()
-
-      }
+      // }
 
     }
 
@@ -291,15 +282,14 @@ function App() {
     selectedRange,
     ranges,
     takeScreenshot,
-    handleRandomize
+    handleRandomize,
+    handleRangeChange
   ])
 
   useEffect(() => {
 
     const captureImage = resultImages.find(image => image.isProcessing);
     if (captureImage === undefined) return;
-
-    const capture_id = captureImage.id;
 
     let formData = new FormData();
     formData.append(
@@ -325,14 +315,10 @@ function App() {
     .then(result => {
 
       const nextImages = resultImages.map(image => {
-        if (image.id === capture_id) {
-          const resultObj = URL.createObjectURL(result);
+        if (image.isProcessing) {
           return Object.assign(
             image,
-            {
-              isProcessing: false,
-              result: resultObj
-            }
+            { result: URL.createObjectURL(result) }
           )
         } else {
           return image;
@@ -345,11 +331,10 @@ function App() {
       console.error('Error:', error);
 
       const nextImages = resultImages.map(image => {
-        if (image.id === capture_id) {
+        if (image.isProcessing) {
           return Object.assign(
             image,
             {
-              isProcessing: false,
               result: "error.jpg",
               error: error.toString()
             }
@@ -359,8 +344,22 @@ function App() {
         }
       });
       setResultImages(nextImages)
-
     })
+    .finally(() => {
+
+      const nextImages = resultImages.map(image => {
+        if (image.isProcessing) {
+          return Object.assign(
+            image,
+            { isProcessing: false }
+          )
+        } else {
+          return image;
+        }
+      });
+      setResultImages(nextImages)
+
+    });
   }, [resultImages])
 
   return (
@@ -391,15 +390,24 @@ function App() {
                             step={1}
                             disabled={selectedRange !== rangeIndex}
                             onChange={(event) =>
-                              handleRangeChange(event, rangeIndex)
+                              handleRangeChange(
+                                range.name,
+                                parseInt(event.target.value)
+                              )
                             }
                             onClick={() => setSelectedRange(rangeIndex)}
                           />
-                          <Form.Label>
-                            { `${range.name} : ${range.content[range.selected].name}` }
-                          </Form.Label>
                         </div>
                       ))}
+                      <Form.Control
+                        as="textarea"
+                        placeholder="Leave a prompt here"
+                        value={currentPrompt}
+                        style={{ height: '120px' }}
+                        onChange={(event) =>
+                          setCurrentPrompt(event.target.value)
+                        }
+                      />
                       { formOptions.map((option, optionIndex) => (
                         <div
                           key={option.name}
