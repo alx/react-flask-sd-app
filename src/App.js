@@ -1,5 +1,5 @@
 import React from 'react';
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import { BrowserRouter, Link, Switch, Route } from 'react-router-dom';
 
 import './App.css';
@@ -17,36 +17,85 @@ import Spinner from 'react-bootstrap/Spinner';
 
 let initImages = [];
 
-
 const initialPrompts = [
-  "disco night, 70s movie, disco costume, alice in wonderland",
-  "simpstyle, Very detailed, clean, high quality, sharp image",
-  "Barbie, plastic doll, blue eyes",
-  "grimm's tales",
-  "anime artwork Miyazaki anime style, key visual, vibrant, studio anime, highly detailed",
-  "People made of smoke, black and white colors, perfect gradient, 8k, ultra detailed, ray tracing,perfect lights, black eyes, Vibrant, beautiful, painterly, detailed, textural, artistic",
-  "pixel art, pixelated, 16bit",
-  "RAW photo, subject, 8k uhd, dslr, soft lighting, high quality, clearly face, an expressive portrait of a musician lost in the magic of their music, capturing their passion",
-  "snow white,  anime artwork, drawing",
-  "Steampunk",
-  "Woodstock, hippie festival",
-  "Heroic fantasy, illustrative, painterly, matte painting, highly detailed",
-  "people in a suit with a tie, cinematic photo, 35mm photograph, film, bokeh, professional, 4k, highly detailed",
-  "A black and white vintage, timeworn family photograph from 1890, rural clothing, ultra-detailed, 8k, slightly sepia tone",
-  "a black and white photo, in the style of Studio Harcourt, featured on cg society, studio portrait",
-  "RAW photo, subject, 8k uhd, dslr, soft lighting, high quality, clearly face, a portrait of a regal monarch, adorned with intricate jewelry and an air of authority",
-  "Gangsters in a new york street,godfather, analog film photo, faded film, desaturated, 35mm photo, grainy, vignette, vintage, Kodachrome, Lomography, stained, highly detailed, found footage",
-  "black & white, Jacques Tati",
-  "Zombies",
-  "The mask movie",
-  "Flowers, photo by James C. Leyendecker, studio portrait, dynamic pose, national geographic photo, retrofuturism, biomorphic",
-  "RAW photo, subject, 8k uhd, dslr, soft lighting, high quality, clearly face, a futuristic visage with cybernetic enhancements seamlessly integrated into human features",
-  "naked under the shower",
-  "swap faces",
-  "Las vegas parano, vhs, psychedelic, Kodachrome",
-  "Star wars jedi, cinematic film still, shallow depth of field, vignette, highly detailed, high budget Hollywood movie, bokeh, cinemascope, moody, epic, gorgeous, film grain, grainy",
-  "closeup portrait of Persian, royal clothing, makeup, jewelry, wind-blown, symmetric, desert, ((sands, dusty and foggy, sand storm, winds)) bokeh, depth of field, centered",
-  "RAW photo, subject, 8k uhd, dslr, soft lighting, high quality, clearly face, an exquisite portrait of a serene face, capturing the essence of tranquility and inner peace"
+  { name: "disco night, 70s movie, disco costume, alice in wonderland"},
+  { name: "simpstyle, Very detailed, clean, high quality, sharp image"},
+  { name: "Barbie, plastic doll, blue eyes"},
+  { name: "grimm's tales"},
+  { name: "anime artwork Miyazaki anime style, key visual, vibrant, studio anime, highly detailed"},
+  { name: "People made of smoke, black and white colors, perfect gradient, 8k, ultra detailed, ray tracing,perfect lights, black eyes, Vibrant, beautiful, painterly, detailed, textural, artistic"},
+  { name: "pixel art, pixelated, 16bit"},
+  { name: "RAW photo, subject, 8k uhd, dslr, soft lighting, high quality, clearly face, an expressive portrait of a musician lost in the magic of their music, capturing their passion"},
+  { name: "snow white,  anime artwork, drawing"},
+  { name: "Steampunk"},
+  { name: "Woodstock, hippie festival"},
+  { name: "Heroic fantasy, illustrative, painterly, matte painting, highly detailed"},
+  { name: "people in a suit with a tie, cinematic photo, 35mm photograph, film, bokeh, professional, 4k, highly detailed"},
+  { name: "A black and white vintage, timeworn family photograph from 1890, rural clothing, ultra-detailed, 8k, slightly sepia tone"},
+  { name: "a black and white photo, in the style of Studio Harcourt, featured on cg society, studio portrait"},
+  { name: "RAW photo, subject, 8k uhd, dslr, soft lighting, high quality, clearly face, a portrait of a regal monarch, adorned with intricate jewelry and an air of authority"},
+  { name: "Gangsters in a new york street,godfather, analog film photo, faded film, desaturated, 35mm photo, grainy, vignette, vintage, Kodachrome, Lomography, stained, highly detailed, found footage"},
+  { name: "black & white, Jacques Tati"},
+  { name: "Zombies"},
+  { name: "The mask movie"},
+  { name: "Flowers, photo by James C. Leyendecker, studio portrait, dynamic pose, national geographic photo, retrofuturism, biomorphic"},
+  { name: "RAW photo, subject, 8k uhd, dslr, soft lighting, high quality, clearly face, a futuristic visage with cybernetic enhancements seamlessly integrated into human features"},
+  { name: "naked under the shower"},
+  { name: "swap faces"},
+  { name: "Las vegas parano, vhs, psychedelic, Kodachrome"},
+  { name: "Star wars jedi, cinematic film still, shallow depth of field, vignette, highly detailed, high budget Hollywood movie, bokeh, cinemascope, moody, epic, gorgeous, film grain, grainy"},
+  { name: "closeup portrait of Persian, royal clothing, makeup, jewelry, wind-blown, symmetric, desert, ((sands, dusty and foggy, sand storm, winds)) bokeh, depth of field, centered"},
+  { name: "RAW photo, subject, 8k uhd, dslr, soft lighting, high quality, clearly face, an exquisite portrait of a serene face, capturing the essence of tranquility and inner peace"},
+]
+
+const initialLoras = [
+  {
+    enabled: false,
+    name: "Harry Dwarf Character",
+    prompt: "Harry_Dwarf, dwarf-like character, flowing long red beard, braided moustache,bald , <lora:Harry_Dwarf:1>",
+    weight: 0.8,
+    civitai_id: 175818,
+    civitai_version: "Harry Dwarf v1.1",
+  },
+  {
+    enabled: false,
+    name: "Graphic Portrait",
+    prompt: "<lora:Graphic_Portrait:1>, (a drawing:1) of ",
+    weight: 0.8,
+    civitai_id: 170039,
+    civitai_version: "SDXL v1.0",
+  },
+  {
+    enabled: false,
+    name: "MS Paint Portraits",
+    prompt: "MS Paint Portraits of ",
+    weight: 0.8,
+    civitai_id: 183354,
+    civitai_version: "v1.0",
+  },
+  {
+    enabled: false,
+    name: "Lego",
+    prompt: "LEGO BrickHeadz, ",
+    weight: 0.8,
+    civitai_id: 92444,
+    civitai_version: "V2.0_SDXL1.0",
+  },
+  {
+    enabled: false,
+    name: "PixelArt",
+    prompt: "",
+    weight: 0.8,
+    civitai_id: 120096,
+    civitai_version: "v1.1",
+  },
+]
+
+const initialFormOptions = [
+  {
+    name: "lora",
+    content: initialLoras
+  }
 ]
 
 const initialRanges = [
@@ -61,12 +110,12 @@ function App() {
 
   const webcamRef = useRef(null);
 
-  const [processingStep, setProcessingStep] = useState(0);
-  const [images, setImages] = useState(initImages);
+  const [resultImages, setResultImages] = useState(initImages);
   const [ranges, setRanges] = useState(initialRanges);
+  const [formOptions, setFormOptions] = useState(initialFormOptions);
   const [selectedRange, setSelectedRange] = useState(0);
 
-  const handleRangeChange = (event, index) => {
+  const handleRangeChange = useCallback((event, index) => {
     const nextRanges = ranges.map((range, i) => {
       if (i === index) {
         return Object.assign(
@@ -79,9 +128,33 @@ function App() {
     });
 
     setRanges(nextRanges);
-  }
+  }, [ranges]);
 
-  const handleRandomizeRanges = () => {
+  const handleFormOptionsChange = useCallback((event, optionName, contentName) => {
+    const nextFormOptions = formOptions.map((option, i) => {
+      if (option.name === optionName) {
+        return Object.assign(
+          option,
+          { content: option.content.map((content, j) => {
+            if (content.name === contentName) {
+              return Object.assign(
+                content,
+                { enabled: !content.enabled }
+              );
+            } else {
+              return content;
+            }
+          })}
+        );
+      } else {
+        return option;
+      }
+    });
+
+    setFormOptions(nextFormOptions);
+  }, [formOptions]);
+
+  const handleRandomizeRanges = useCallback(() => {
     const nextRanges = ranges.map(range => {
       return Object.assign(
         range,
@@ -89,7 +162,63 @@ function App() {
       );
     });
     setRanges(nextRanges);
-  }
+  }, [ranges]);
+
+  const handleRandomizeOptions = useCallback(() => {
+    const nextOptions = formOptions.map(option => {
+      return Object.assign(
+        option,
+        { content: option.content.map(content => {
+          return Object.assign(
+            content,
+            { enabled: (Math.random() < 0.5) }
+          );
+        })}
+      );
+    });
+    setFormOptions(nextOptions);
+  }, [formOptions]);
+
+  const handleRandomize = useCallback(() => {
+    handleRandomizeRanges();
+    handleRandomizeOptions();
+  }, [handleRandomizeRanges, handleRandomizeOptions]);
+
+  const isProcessing = resultImages.find(image => image.isProcessing);
+
+  const takeScreenshot = useCallback(() => {
+
+    if (isProcessing) return;
+
+    const prompt_range = ranges.find(r => r.name === "prompt")
+    let process_prompt = prompt_range
+          .content[prompt_range.selected]
+          .name;
+
+    const lora_option = formOptions.find(r => r.name === "lora")
+    const process_loras = lora_option.content.filter(l => l.enabled)
+
+    for (const lora of process_loras) {
+      process_prompt = lora.prompt + process_prompt;
+    }
+
+    const screenshot = webcamRef.current.getScreenshot();
+
+    const captureImage = {
+      id: Date.now(),
+      capture: screenshot,
+      result: "processing.jpg",
+      prompt: process_prompt,
+      isProcessing: true,
+      loras: process_loras
+    }
+
+    setResultImages([
+      captureImage,
+      ...resultImages
+    ]);
+
+  }, [isProcessing, ranges, formOptions, resultImages])
 
   useEffect(() => {
 
@@ -142,13 +271,12 @@ function App() {
       } else if (event.key === "r") {
 
         event.preventDefault()
-        handleRandomizeRanges()
+        handleRandomize()
 
       } else if (event.keyCode === 32) {
 
         event.preventDefault()
-        if (processingStep === 0)
-          setProcessingStep(1);
+        takeScreenshot()
 
       }
 
@@ -159,41 +287,27 @@ function App() {
     return () => {
       window.removeEventListener('keydown', onKeydown);
     }
-  }, [selectedRange, ranges, processingStep])
+  }, [
+    selectedRange,
+    ranges,
+    takeScreenshot,
+    handleRandomize
+  ])
 
-  const takeScreenshot = () => {
+  useEffect(() => {
 
-    const process_prompt = ranges
-          .filter(r => r.name === "prompt")
-          .map(range => {
-      return range.content[range.selected];
-    }).join(", ");
+    const captureImage = resultImages.find(image => image.isProcessing);
+    if (captureImage === undefined) return;
 
-    const screenshot = webcamRef.current.getScreenshot();
-
-    const currentImage = {
-      id: Date.now(),
-      capture: screenshot,
-      result: "processing.jpg",
-      prompt: process_prompt,
-      isProcessing: true,
-    }
-    setImages([
-      currentImage,
-      ...images
-    ]);
-    setProcessingStep(2);
-  }
-
-  const apiProcessing = () => {
-    const currentImage = images[0];
+    const capture_id = captureImage.id;
 
     let formData = new FormData();
-    formData.append('prompt', currentImage.prompt);
     formData.append(
       'file',
-      currentImage.capture.replace("data:image/jpeg;base64,", "")
+      captureImage.capture.replace("data:image/jpeg;base64,", "")
     );
+    formData.append('prompt', captureImage.prompt);
+    formData.append('loras', JSON.stringify(captureImage.loras))
 
     fetch(`/api/processing`,
         {
@@ -210,11 +324,11 @@ function App() {
     })
     .then(result => {
 
-      const nextImages = images.map((image, i) => {
-        if (i === 0) {
+      const nextImages = resultImages.map(image => {
+        if (image.id === capture_id) {
           const resultObj = URL.createObjectURL(result);
           return Object.assign(
-            currentImage,
+            image,
             {
               isProcessing: false,
               result: resultObj
@@ -224,19 +338,19 @@ function App() {
           return image;
         }
       });
-      setImages(nextImages)
+      setResultImages(nextImages)
 
     })
     .catch(error => {
       console.error('Error:', error);
 
-      const nextImages = images.map((image, i) => {
-        if (i === 0) {
+      const nextImages = resultImages.map(image => {
+        if (image.id === capture_id) {
           return Object.assign(
-            currentImage,
+            image,
             {
               isProcessing: false,
-              result: "erorr.jpg",
+              result: "error.jpg",
               error: error.toString()
             }
           )
@@ -244,28 +358,10 @@ function App() {
           return image;
         }
       });
-      setImages(nextImages)
+      setResultImages(nextImages)
+
     })
-    .finally(() => {
-      setProcessingStep(0);
-    })
-  }
-
-  useEffect(() => {
-
-    if(processingStep === 0) return;
-
-    if (processingStep === 1) {
-      takeScreenshot();
-    } else if (processingStep === 2) {
-      apiProcessing();
-    }
-
-  }, [processingStep])
-
-  const handleProcessClick = () => {
-    setProcessingStep(1);
-  }
+  }, [resultImages])
 
   return (
     <div className="App">
@@ -300,34 +396,65 @@ function App() {
                             onClick={() => setSelectedRange(rangeIndex)}
                           />
                           <Form.Label>
-                            { range.content[range.selected] }
+                            { `${range.name} : ${range.content[range.selected].name}` }
                           </Form.Label>
                         </div>
                       ))}
-                      <Button
-                        onClick={handleRandomizeRanges}
-                        variant="secondary"
-                        className="me-2"
-                      >
-                        Randomize
-                      </Button>
-                      <Button
-                        onClick={handleProcessClick}
-                        variant="primary"
-                        disabled={processingStep !== 0}
-                      >
-                      { processingStep !== 0 ?
-                        "Processing..."
-                        :
-                        "Capture"
-                      }
-                      </Button>
+                      { formOptions.map((option, optionIndex) => (
+                        <div
+                          key={option.name}
+                        >
+                          { option.content.map((content, contentIndex) => {
+                              return (
+                                <Button key={content.name}
+                                        size="sm"
+                                        variant={
+                                          content.enabled ?
+                                          "primary" :
+                                          "secondary"
+                                        }
+                                        className="me-2 mt-2"
+                                        onClick={(e) =>
+                                          handleFormOptionsChange(
+                                            e,
+                                            option.name,
+                                            content.name
+                                          )
+                                        }
+                                >
+                                  {content.name}
+                                </Button>
+                              )
+                            })
+                          }
+                        </div>
+                      ))}
+                      <div className="mt-4">
+                        <Button
+                          onClick={handleRandomize}
+                          variant="secondary"
+                          className="me-2"
+                        >
+                          Randomize
+                        </Button>
+                        <Button
+                          onClick={takeScreenshot}
+                          variant="primary"
+                          disabled={isProcessing}
+                        >
+                        { isProcessing ?
+                          "Processing..."
+                          :
+                          "Capture"
+                        }
+                        </Button>
+                      </div>
                     </Card.Body>
                   </Card>
                 </Col>
                 <Col sm="9">
                   <Row xs={1} md={3} className="g-4">
-                  { images.map((image, index) => (
+                  { resultImages.map((image, index) => (
                     <Col key={image.id}>
                       <Card style={{ width: '18rem' }}>
                         <Card.Img variant="top" src={image.capture} />
@@ -347,6 +474,18 @@ function App() {
                               <Card.Text>{image.error}</Card.Text>
                           )}
                           <Card.Text>{image.prompt}</Card.Text>
+                          { image.loras.map(lora => {
+                              return (
+                                <Button key={lora.name}
+                                        size="sm"
+                                        variant="primary"
+                                        className="mt-2 me-2"
+                                >
+                                  {lora.name}
+                                </Button>
+                              )
+                            })
+                          }
                         </Card.Body>
                       </Card>
                     </Col>
