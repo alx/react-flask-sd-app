@@ -114,6 +114,7 @@ function App() {
   const [ranges, setRanges] = useState(initialRanges);
   const [formOptions, setFormOptions] = useState(initialFormOptions);
   const [selectedRange, setSelectedRange] = useState(0);
+  const [captureDelay, setCaptureDelay] = useState(0);
 
   const rangePrompt = ranges.find(r => r.name === "prompt")
   const [currentPrompt, setCurrentPrompt] = useState(
@@ -237,6 +238,35 @@ function App() {
     currentPrompt,
     resultImages
   ])
+
+  const setTimeoutCaptureRef = React.useRef();
+
+  useEffect(() => {
+
+    if (captureDelay === 0) return;
+
+    if (setTimeoutCaptureRef.current) {
+      clearTimeout(setTimeoutCaptureRef.current);
+      setTimeoutCaptureRef.current = null;
+    }
+
+    setTimeoutCaptureRef.current = setTimeout(() => {
+
+      if (captureDelay === 1000) {
+        takeScreenshot()
+      }
+
+      setCaptureDelay(captureDelay - 1000)
+      clearTimeout(setTimeoutCaptureRef.current);
+      setTimeoutCaptureRef.current = null;
+
+    }, 1000);
+
+  }, [captureDelay, setTimeoutCaptureRef, takeScreenshot])
+
+  const captureWithDelay = useCallback(() => {
+    setCaptureDelay(3000)
+  }, [])
 
   useEffect(() => {
 
@@ -381,6 +411,31 @@ function App() {
                       className="card-img-top"
                     />
                     <Card.Body>
+                      <div className="mb-2">
+                        <Button
+                          onClick={handleRandomize}
+                          variant="secondary"
+                          className="me-2"
+                        >
+                          Random
+                        </Button>
+                        <Button
+                          onClick={captureWithDelay}
+                          variant="primary"
+                          disabled={isProcessing}
+                        >
+                        { isProcessing ?
+                          "Processing..."
+                          :
+                          (
+                            captureDelay > 0 ?
+                              `${captureDelay/1000}...`
+                              :
+                              "Capture"
+                          )
+                        }
+                        </Button>
+                      </div>
                       { ranges.map((range, rangeIndex) => (
                         <div key={range.name}>
                           <Form.Range
@@ -437,26 +492,6 @@ function App() {
                           }
                         </div>
                       ))}
-                      <div className="mt-4">
-                        <Button
-                          onClick={handleRandomize}
-                          variant="secondary"
-                          className="me-2"
-                        >
-                          Randomize
-                        </Button>
-                        <Button
-                          onClick={takeScreenshot}
-                          variant="primary"
-                          disabled={isProcessing}
-                        >
-                        { isProcessing ?
-                          "Processing..."
-                          :
-                          "Capture"
-                        }
-                        </Button>
-                      </div>
                     </Card.Body>
                   </Card>
                 </Col>
