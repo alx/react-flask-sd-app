@@ -1,0 +1,28 @@
+{
+  "log_filename": "/workspace/log.txt",
+  "capture_folder": "/workspace/captures",
+  "processor": {
+    "models": {
+      "sdxl": "stabilityai/stable-diffusion-xl-base-1.0",
+      "lora": "latent-consistency/lcm-lora-sdxl",
+      "vae": "madebyollin/sdxl-vae-fp16-fix",
+      "t2iAdapter": "TencentARC/t2i-adapter-depth-zoe-sdxl-1.0",
+      "zoe_depth": {
+        "model_id": "valhalla/t2iadapter-aux-models",
+        "filename": "zoed_nk.pth",
+        "model_type": "zoedepth_nk"
+      },
+      "face_analysis": "buffalo_l",
+      "swapper": "/workspace/checkpoints/inswapper_128.onnx"
+    },
+    "gpu_id": 0,
+    "output_prefix": "",
+    "output_suffix": "_response",
+    "prompt": "",
+    "negative_prompt": "",
+    "extras": [
+      "face_to_prompt",
+      "swap_faces"
+    ]
+  }
+}
