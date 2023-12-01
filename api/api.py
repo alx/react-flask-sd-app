@@ -73,11 +73,7 @@ def process_image():
 
     prompt = request.form.get('prompt', '')
     negative_prompt = request.form.get('negative_prompt', '')
-
-    loras = []
-    loras_json = request.form.get('loras', None)
-    if loras_json is not None:
-        loras = json.loads(loras_json)
+    loras = json.loads(request.form.get('loras', []))
 
     dst_path = processor.run(
         filename,

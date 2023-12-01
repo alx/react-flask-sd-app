@@ -165,7 +165,8 @@ class ImageProcessor:
 
         for face in faces:
             gender = "woman" if face['gender'] == 0 else "man"
-            prompt.append(f"%s %syo" % (gender, face["age"]))
+            # prompt.append(f"%s %syo" % (gender, face["age"]))
+            prompt.append(gender)
 
         return ", ".join(prompt)
 
