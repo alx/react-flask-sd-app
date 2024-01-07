@@ -229,19 +229,36 @@ class ImageProcessor:
             if "lora_scale" in pipe_params:
                 config_lora_scale = pipe_params["lora_scale"]
 
-        self.logging.debug(f"Running prompt: {prompt}")
-        dst_img = self.pipe(
-            prompt=prompt,
-            negative_prompt=negative_prompt,
-            image=src_img,
-            num_inference_steps=config_num_inference_steps,
-            adapter_conditioning_scale=config_adapter_conditioning_scale,
-            guidance_scale=config_guidance_scale,
-            cross_attention_kwargs={"scale": config_lora_scale},
-        ).images[0]
-
         dst_path = self.dst_path(filename)
-        dst_img.save(str(dst_path))
+
+        self.logging.debug(f"Running prompt: {prompt}")
+
+        try:
+            dst_img = self.pipe(
+                prompt=prompt,
+                negative_prompt=negative_prompt,
+                image=src_img,
+                num_inference_steps=config_num_inference_steps,
+                adapter_conditioning_scale=config_adapter_conditioning_scale,
+                guidance_scale=config_guidance_scale,
+                cross_attention_kwargs={"scale": config_lora_scale},
+            ).images[0]
+
+            dst_img.save(str(dst_path))
+        except (BrokenPipeError, RuntimeError):
+            self.logging.error(torch.cuda.memory_summary(device=None, abbreviated=False))
+            dst_img = self.pipe(
+                prompt="Error on torch device memory",
+                negative_prompt=negative_prompt,
+                image=src_img,
+                num_inference_steps=config_num_inference_steps,
+                adapter_conditioning_scale=config_adapter_conditioning_scale,
+                guidance_scale=config_guidance_scale,
+                cross_attention_kwargs={"scale": config_lora_scale},
+            ).images[0]
+
+            dst_img.save(str(dst_path))
+            exit()
 
         if "swap_faces" in self.process_config["extras"]:
 
