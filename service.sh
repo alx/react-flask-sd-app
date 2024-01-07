@@ -4,17 +4,17 @@ PIDFILE=/var/run/photomaton.pid
 
 case $1 in
         start)
-                source /workspace/.venv/bin/activate
-                # Launch your program as a detached process
+                export PIP_CACHE_DIR=/workspace/.cache/
+                export TRANSFORMERS_CACHE=/workspace/.cache/
                 export HF_HOME=/workspace/.cache/huggingface/
+                source /workspace/.venv/bin/activate
+                pip3 --cache-dir "/workspace/.cache" install -r /workspace/react-flask-sd-app/api/requirements.txt
                 python3 /workspace/react-flask-sd-app/api/api.py --config /workspace/react-flask-sd-app/config.runpod.
 json >> /workspace/photomaton.log &
-                # Get its PID and store it
                 echo $! > ${PIDFILE}
                 ;;
         stop)
                 kill `cat ${PIDFILE}`
-                # Now that it's killed, don't forget to remove the PID file
                 rm ${PIDFILE}
                 ;;
         *)
