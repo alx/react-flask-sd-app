@@ -46,6 +46,20 @@ app.secret_key = secret
 # Limit upload size to 16MB
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1000 * 1000
 
+# error 413 entity too large
+# https://github.com/benoitc/gunicorn/issues/1733
+@app.before_request
+def handle_chunking():
+    """
+    Sets the "wsgi.input_terminated" environment flag, thus enabling
+    Werkzeug to pass chunked requests as streams.  The gunicorn server
+    should set this, but it's not yet been implemented.
+    """
+
+    transfer_encoding = request.headers.get("Transfer-Encoding", None)
+    if transfer_encoding == u"chunked":
+        request.environ["wsgi.input_terminated"] = True
+
 @app.errorhandler(404)
 def not_found(e):
     return app.send_static_file('index.html')
