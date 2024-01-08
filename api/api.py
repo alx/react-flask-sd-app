@@ -39,8 +39,6 @@ logging.basicConfig(
 )
 logging.getLogger().addHandler(logging.StreamHandler())
 
-processor = ImageProcessor(config, logging)
-
 app = Flask(__name__, static_folder='../build', static_url_path='/')
 secret = secrets.token_urlsafe(32)
 app.secret_key = secret
@@ -75,6 +73,7 @@ def process_image():
     negative_prompt = request.form.get('negative_prompt', '')
     loras = json.loads(request.form.get('loras', []))
 
+    processor = ImageProcessor(config, logging)
     dst_path = processor.run(
         filename,
         prompt,
