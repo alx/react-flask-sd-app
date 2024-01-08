@@ -85,6 +85,12 @@ class ImageProcessor:
                 variant="fp16",
             ).to(device)
 
+
+            # The StableDiffusionPipeline got incremental VRAM, especially at the end of a batch inference.
+            # A simple solution is just to add this line
+            # https://discuss.huggingface.co/t/memory-usage-by-later-pipeline-stages/23699
+            self.pipe.final_offload_hook = True
+
             # if "lora_id" in self.models_config:
             #     lora_id = self.models_config["lora_id"]
             #     self.pipe.load_lora_weights(lora_id)
