@@ -87,13 +87,23 @@ def process_image():
     negative_prompt = request.form.get('negative_prompt', '')
     loras = json.loads(request.form.get('loras', []))
 
-    processor = ImageProcessor(config, logging)
-    dst_path = processor.run(
-        filename,
-        prompt,
-        negative_prompt,
-        loras
-    )
+    try:
+        processor = ImageProcessor(config, logging)
+        dst_path = processor.run(
+            filename,
+            prompt,
+            negative_prompt,
+            loras
+        )
+    except Exception as e:
+        logging.error(e)
+        filename_no_extension = filename.split(".")[0]
+        dst_path = f"%s%s%s%s%s.%s" % (
+            config["processor"]["output_prefix"],
+            filename_no_extension,
+            config["processor"]["output_suffix"],
+            "jpg"
+        )
 
     logging.debug(dst_path)
     return send_from_directory(
