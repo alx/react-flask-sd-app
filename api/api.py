@@ -11,6 +11,7 @@ import argparse
 from pathlib import Path
 import secrets
 import uuid
+import traceback
 
 from image_processor import ImageProcessor
 
@@ -105,6 +106,7 @@ def process_image():
             as_attachment=True
         )
     except Exception as e:
+        logging.error(traceback.format_exc())
         logging.error(e)
         return "Error processing image", 500
 
