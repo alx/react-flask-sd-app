@@ -26,6 +26,7 @@ easydict==1.10
 einops==0.7.0
 filelock==3.12.4
 flatbuffers==23.5.26
+Flask-AutoIndex
 fonttools==4.43.0
 fsspec==2023.9.2
 huggingface-hub==0.17.3

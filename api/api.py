@@ -1,6 +1,7 @@
 import base64
 import time
 from flask import Flask, request, flash, redirect, url_for, session, send_from_directory
+from flask_autoindex import AutoIndex
 from werkzeug.utils import secure_filename
 from pprint import pprint
 import os
@@ -40,6 +41,8 @@ logging.basicConfig(
 logging.getLogger().addHandler(logging.StreamHandler())
 
 app = Flask(__name__, static_folder='../build', static_url_path='/')
+AutoIndex(app, browse_root=config["capture_folder"])
+
 secret = secrets.token_urlsafe(32)
 app.secret_key = secret
 
@@ -97,13 +100,7 @@ def process_image():
         )
     except Exception as e:
         logging.error(e)
-        filename_no_extension = filename.split(".")[0]
-        dst_path = f"%s%s%s%s%s.%s" % (
-            config["processor"]["output_prefix"],
-            filename_no_extension,
-            config["processor"]["output_suffix"],
-            "jpg"
-        )
+        dst_path = filename
 
     logging.debug(dst_path)
     return send_from_directory(
