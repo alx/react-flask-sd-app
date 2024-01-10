@@ -9,8 +9,7 @@ case $1 in
                 export HF_HOME=/workspace/.cache/huggingface/
                 source /workspace/.venv/bin/activate
                 pip3 --cache-dir "/workspace/.cache" install -r /workspace/react-flask-sd-app/api/requirements.txt
-                python3 /workspace/react-flask-sd-app/api/api.py --config /workspace/react-flask-sd-app/config.runpod.
-json >> /workspace/photomaton.log &
+                python3 /workspace/react-flask-sd-app/api/api.py --config /workspace/react-flask-sd-app/config.runpod.json >> /workspace/photomaton.log &
                 echo $! > ${PIDFILE}
                 ;;
         stop)
