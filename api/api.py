@@ -98,16 +98,16 @@ def process_image():
             negative_prompt,
             loras
         )
+        logging.debug(dst_path)
+        return send_from_directory(
+            config['capture_folder'],
+            os.path.basename(dst_path),
+            as_attachment=True
+        )
     except Exception as e:
         logging.error(e)
-        dst_path = filename
+        return "Error processing image", 500
 
-    logging.debug(dst_path)
-    return send_from_directory(
-        config['capture_folder'],
-        os.path.basename(dst_path),
-        as_attachment=True
-    )
 
 
 if __name__ == "__main__":
