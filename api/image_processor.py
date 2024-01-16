@@ -205,11 +205,15 @@ class ImageProcessor:
 
         self.pipe.unload_lora_weights()
         for lora in loras:
-            lora_path = civitai_download(
-                lora["civitai_id"],
-                version=lora["civitai_version"]
-            )
-            self.pipe.load_lora_weights(lora_path)
+            try:
+                lora_path = civitai_download(
+                    lora["civitai_id"],
+                    version=lora["civitai_version"]
+                )
+                self.pipe.load_lora_weights(lora_path)
+            except:
+                self.logging.error(f"Error loading lora weights: {lora['civitai_id']}")
+                pass
 
         if "face_to_prompt" in self.process_config["extras"]:
             source_faces = self.face_analyser.get(cv2.imread(str(src_path)))
